@@ -92,7 +92,15 @@ function AuthPage() {
       const nextPath = location.state?.from?.pathname || fallbackPath;
       navigate(nextPath, { replace: true });
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Unable to complete authentication.");
+      if (requestError.code === "ECONNABORTED") {
+        setError("The free backend instance is waking up from cold start (~45s). Please wait a few moments and click again.");
+      } else if (!requestError.response) {
+        setError(
+          "Unable to connect to backend server. If using Render free tier, the service may be spinning up or VITE_RENDER_API_URL needs to be set."
+        );
+      } else {
+        setError(requestError.response?.data?.message || "Unable to complete authentication.");
+      }
     } finally {
       setIsSubmitting(false);
     }

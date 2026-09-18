@@ -23,32 +23,49 @@ export function AuthProvider({ children }) {
     }
   }
 
+  function saveToken(token) {
+    if (typeof window !== "undefined" && token) {
+      localStorage.setItem("securerag_token", token);
+    }
+  }
+
+  function clearToken() {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("securerag_token");
+    }
+  }
+
   async function login(payload) {
     const response = await authApi.login(payload);
+    saveToken(response.token);
     setUser(response.user);
     return response.user;
   }
 
   async function register(payload) {
     const response = await authApi.register(payload);
+    saveToken(response.token);
     setUser(response.user);
     return response.user;
   }
 
   async function registerAdmin(payload) {
     const response = await authApi.registerAdmin(payload);
+    saveToken(response.token);
     setUser(response.user);
     return response.user;
   }
 
   async function bootstrapAdmin(payload) {
     const response = await authApi.bootstrapAdmin(payload);
+    saveToken(response.token);
     setUser(response.user);
     return response.user;
   }
 
   async function logout() {
-    await authApi.logout();
+    await authApi.logout().catch(() => {});
+    clearToken();
     setUser(null);
   }
 

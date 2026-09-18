@@ -19,6 +19,7 @@ const register = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     user: result.user,
+    token: result.token,
   });
 });
 
@@ -30,6 +31,7 @@ const login = asyncHandler(async (req, res) => {
 
   res.json({
     user: result.user,
+    token: result.token,
   });
 });
 
@@ -47,6 +49,7 @@ const bootstrapAdmin = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     user: result.user,
+    token: result.token,
   });
 });
 
@@ -58,6 +61,7 @@ const registerAdmin = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     user: result.user,
+    token: result.token,
   });
 });
 
