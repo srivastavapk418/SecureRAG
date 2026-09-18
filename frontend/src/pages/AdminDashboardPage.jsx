@@ -270,7 +270,7 @@ function AdminDashboardPage() {
               <h2>Top Cited Knowledge Assets</h2>
             </div>
           </div>
-          <div className="list-stack">
+          <div className="list-stack scrollable-stack leaderboard-stack">
             {overview?.topCitedDocuments?.length ? (
               overview.topCitedDocuments.map((asset, idx) => (
                 <div className="list-row" key={asset._id || idx}>
@@ -307,7 +307,7 @@ function AdminDashboardPage() {
               <h2>Access Policy Breakdown</h2>
             </div>
           </div>
-          <div className="list-stack">
+          <div className="list-stack scrollable-stack policy-stack">
             {overview?.policyDistribution?.length ? (
               overview.policyDistribution.map((item) => (
                 <div className="list-row" key={item._id}>
@@ -334,7 +334,7 @@ function AdminDashboardPage() {
               <h2>Recent Employee Inquiries</h2>
             </div>
           </div>
-          <div className="list-stack">
+          <div className="list-stack scrollable-stack audit-stack">
             {overview?.recentQueries?.length ? (
               overview.recentQueries.map((query) => (
                 <div className="list-row" key={query._id}>
@@ -380,13 +380,23 @@ function AdminDashboardPage() {
               <h2>Recently active accounts</h2>
             </div>
           </div>
-          <div className="list-stack">
+          <div className="list-stack scrollable-stack users-stack">
             {overview?.recentUsers?.length ? (
               overview.recentUsers.map((workspaceUser) => (
-                <div className="list-row" key={workspaceUser._id}>
-                  <strong>{workspaceUser.name}</strong>
-                  <span>
-                    {workspaceUser.email} | {workspaceUser.role}
+                <div className="list-row user-row-compact" key={workspaceUser._id}>
+                  <div className="user-info-col">
+                    <div className="user-avatar-initial" style={{ width: 32, height: 32, fontSize: "0.85rem" }}>
+                      {workspaceUser.name ? workspaceUser.name.charAt(0).toUpperCase() : "U"}
+                    </div>
+                    <div>
+                      <strong>{workspaceUser.name}</strong>
+                      <p className="muted" style={{ fontSize: "0.8rem", margin: "2px 0 0" }}>
+                        {workspaceUser.email} • {workspaceUser.department || "General"}
+                      </p>
+                    </div>
+                  </div>
+                  <span className={`status-pill ${workspaceUser.role === "admin" ? "status-failed" : "status-indexed"}`}>
+                    {workspaceUser.role}
                   </span>
                 </div>
               ))

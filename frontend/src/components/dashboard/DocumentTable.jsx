@@ -17,7 +17,7 @@ function DocumentTable({
   }
 
   return (
-    <div className="table-wrap">
+    <div className="table-wrap scrollable-table">
       <table className="data-table">
         <thead>
           <tr>

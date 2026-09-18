@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../hooks/useAuth";
+import ProfileModal from "../common/ProfileModal";
 
 function Topbar({ title, subtitle, actions }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme, isDark } = useTheme();
   const navigate = useNavigate();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   async function handleLogout() {
     await logout();
@@ -59,7 +62,14 @@ function Topbar({ title, subtitle, actions }) {
 
         {actions}
 
-        <div className="user-chip">
+        <div
+          className="user-chip clickable-chip"
+          onClick={() => setIsProfileOpen(true)}
+          title="Click to view or edit profile"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsProfileOpen(true); }}
+        >
           <div className="user-avatar-initial">
             {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
           </div>
@@ -67,10 +77,23 @@ function Topbar({ title, subtitle, actions }) {
             <strong>{user?.name}</strong>
             <span>{user?.role} {user?.department ? `• ${user.department}` : ""}</span>
           </div>
-          <button className="ghost-button signout-button" onClick={handleLogout} type="button">
+          <button
+            className="ghost-button signout-button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleLogout();
+            }}
+            type="button"
+            title="Sign out of workspace"
+          >
             Sign out
           </button>
         </div>
+
+        <ProfileModal
+          isOpen={isProfileOpen}
+          onClose={() => setIsProfileOpen(false)}
+        />
       </div>
     </header>
   );

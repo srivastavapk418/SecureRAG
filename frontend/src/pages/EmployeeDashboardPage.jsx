@@ -196,7 +196,7 @@ function EmployeeDashboardPage() {
           <p className="sidebar-label">Recent conversations</p>
           <span className="sidebar-count-badge">{sessions.length}</span>
         </div>
-        <div className="sidebar-stack">
+        <div className="sidebar-stack scrollable-stack">
           {sessions.length ? (
             sessions.map((session) => {
               const isActive = currentSession?._id === session._id;
@@ -244,7 +244,7 @@ function EmployeeDashboardPage() {
       {overview?.suggestions?.length ? (
         <div className="sidebar-group">
           <p className="sidebar-label">Quick prompts</p>
-          <div className="sidebar-stack">
+          <div className="sidebar-stack suggestions-stack scrollable-stack">
             {overview.suggestions.map((suggestion) => (
               <button
                 key={suggestion}

@@ -1806,3 +1806,336 @@ a {
     text-align: center;
   }
 }
+
+/* ==========================================================================
+   Modern Scrollbar & Section Max-Height Constraints
+   ========================================================================== */
+.scrollable-stack,
+.scrollable-table,
+.custom-scrollbar {
+  --scrollbar-thumb: rgba(148, 163, 184, 0.35);
+  --scrollbar-track: rgba(15, 23, 42, 0.12);
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  overflow-y: auto;
+}
+
+@supports not (scrollbar-color: auto) {
+  .scrollable-stack::-webkit-scrollbar,
+  .scrollable-table::-webkit-scrollbar,
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollable-stack::-webkit-scrollbar-thumb,
+  .scrollable-table::-webkit-scrollbar-thumb,
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 999px;
+  }
+  .scrollable-stack::-webkit-scrollbar-track,
+  .scrollable-table::-webkit-scrollbar-track,
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 999px;
+  }
+}
+
+/* Admin Dashboard Specific Section Constraints */
+.leaderboard-stack {
+  max-height: 320px;
+  padding-right: 0.35rem;
+}
+
+.policy-stack {
+  max-height: 280px;
+  padding-right: 0.35rem;
+}
+
+.audit-stack {
+  max-height: 320px;
+  padding-right: 0.35rem;
+}
+
+.users-stack {
+  max-height: 300px;
+  padding-right: 0.35rem;
+}
+
+.scrollable-table {
+  max-height: 420px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.scrollable-table .data-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+  z-index: 2;
+  box-shadow: 0 1px 0 var(--border);
+}
+
+/* Employee Workspace Constraints */
+.sidebar-stack.scrollable-stack {
+  max-height: 320px;
+  padding-right: 0.3rem;
+}
+
+.sidebar-stack.suggestions-stack {
+  max-height: 220px;
+  padding-right: 0.3rem;
+}
+
+/* ==========================================================================
+   Clickable Topbar User Chip & Profile Modal
+   ========================================================================== */
+.user-chip.clickable-chip {
+  cursor: pointer;
+  transition: all 180ms ease;
+  user-select: none;
+}
+
+.user-chip.clickable-chip:hover {
+  background: var(--bg-hover, rgba(255, 255, 255, 0.08));
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: modalFadeIn 180ms ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 1.75rem;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+  animation: modalSlideUp 200ms ease;
+}
+
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.profile-modal-card {
+  max-width: 620px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.75rem 2rem;
+}
+
+.profile-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-user-summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.profile-avatar-large {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #2563eb);
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+}
+
+.profile-tags-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.profile-close-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 160ms ease;
+}
+
+.profile-close-btn:hover {
+  background: var(--bg-soft);
+  color: var(--text-main);
+  border-color: var(--accent);
+}
+
+.profile-tabs-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+.profile-tab-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.profile-tab-btn.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.profile-status-banner {
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  font-size: 0.88rem;
+  margin-bottom: 1rem;
+}
+
+.profile-status-banner.success {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.profile-status-banner.error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.profile-modal-body {
+  overflow-y: auto;
+  max-height: calc(90vh - 180px);
+  padding-right: 0.5rem;
+}
+
+.profile-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  .profile-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.input-disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.profile-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 1.25rem 0;
+}
+
+.profile-metadata-card {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 0.9rem 1.1rem;
+  margin: 1.25rem 0;
+  font-size: 0.88rem;
+}
+
+.profile-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.profile-danger-zone {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed rgba(239, 68, 68, 0.3);
+}
+
+.delete-confirm-box {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-top: 0.6rem;
+}
+
+.manage-users-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.add-user-card {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.user-row-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.user-info-col {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-actions-col {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}

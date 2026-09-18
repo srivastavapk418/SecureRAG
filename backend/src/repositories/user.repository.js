@@ -29,6 +29,18 @@ function countAdmins() {
   return User.countDocuments({ role: ROLES.ADMIN });
 }
 
+function listAllUsers() {
+  return User.find().select("-password").sort({ createdAt: -1 });
+}
+
+function updateUser(id, updates) {
+  return User.findByIdAndUpdate(id, updates, { new: true, runValidators: true }).select("-password");
+}
+
+function deleteUser(id) {
+  return User.findByIdAndDelete(id);
+}
+
 module.exports = {
   createUser,
   findByEmail,
@@ -37,5 +49,8 @@ module.exports = {
   countUsers,
   listRecentUsers,
   countAdmins,
+  listAllUsers,
+  updateUser,
+  deleteUser,
 };
 

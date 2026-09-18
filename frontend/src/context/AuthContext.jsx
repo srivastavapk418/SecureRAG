@@ -69,6 +69,12 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
+  function updateUser(updatedUser) {
+    if (updatedUser) {
+      setUser((current) => ({ ...current, ...updatedUser }));
+    }
+  }
+
   const value = {
     user,
     isLoading,
@@ -78,6 +84,7 @@ export function AuthProvider({ children }) {
     bootstrapAdmin,
     logout,
     refreshSession,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
