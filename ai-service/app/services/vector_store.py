@@ -7,8 +7,17 @@ from app.core.config import Settings
 
 class VectorStore:
     def __init__(self, settings: Settings) -> None:
-        Path(settings.vector_db_path).mkdir(parents=True, exist_ok=True)
-        self.client = chromadb.PersistentClient(path=settings.vector_db_path)
+        target_path = Path(settings.vector_db_path)
+        if not target_path.is_absolute():
+            ai_service_dir = Path(__file__).resolve().parents[2]
+            candidate = ai_service_dir / settings.vector_db_path
+            if candidate.exists() and (candidate / "chroma.sqlite3").exists():
+                target_path = candidate
+            elif (ai_service_dir / "data" / "chroma" / "chroma.sqlite3").exists():
+                target_path = ai_service_dir / "data" / "chroma"
+
+        target_path.mkdir(parents=True, exist_ok=True)
+        self.client = chromadb.PersistentClient(path=str(target_path))
         self.collection = self.client.get_or_create_collection(
             name="enterprise_documents",
             metadata={"hnsw:space": "cosine"},
