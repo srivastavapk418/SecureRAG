@@ -45,7 +45,7 @@ const FALLBACK_URL =
 // 2. Active Endpoint Manager
 function getActiveBaseUrl() {
   if (typeof window !== "undefined") {
-    const cached = sessionStorage.getItem(STORAGE_KEY);
+    const cached = sessionStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY);
     if (cached) return cached;
   }
   return PRIMARY_URL;
@@ -53,8 +53,14 @@ function getActiveBaseUrl() {
 
 function setActiveBaseUrl(url) {
   if (typeof window !== "undefined" && url) {
-    sessionStorage.setItem(STORAGE_KEY, url);
+    const clean = normalizeApiBaseUrl(url);
+    if (clean) {
+      sessionStorage.setItem(STORAGE_KEY, clean);
+      localStorage.setItem(STORAGE_KEY, clean);
+      return clean;
+    }
   }
+  return "";
 }
 
 // 3. Create Axios Instance with Bearer Token & Cold-Start Timeout
@@ -127,5 +133,5 @@ if (typeof window !== "undefined" && FALLBACK_URL && PRIMARY_URL !== FALLBACK_UR
   }
 }
 
-export { PRIMARY_URL, FALLBACK_URL, getActiveBaseUrl, TOKEN_KEY };
+export { PRIMARY_URL, FALLBACK_URL, getActiveBaseUrl, setActiveBaseUrl, TOKEN_KEY };
 export default http;

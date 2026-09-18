@@ -477,6 +477,53 @@ a {
   width: 100%;
 }
 
+.auth-server-settings {
+  display: grid;
+  gap: 0.6rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border);
+  font-size: 0.82rem;
+}
+
+.auth-server-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--text-muted);
+}
+
+.auth-server-status strong {
+  color: var(--text-main);
+  word-break: break-all;
+}
+
+.link-style-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.auth-server-edit-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.auth-server-edit-row input {
+  flex: 1;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.86rem;
+}
+
+.auth-server-edit-row button {
+  padding: 0.55rem 0.95rem;
+  font-size: 0.86rem;
+}
+
 .segmented-control {
   width: min(100%, 28rem);
   display: grid;
