@@ -3,6 +3,7 @@ const fs = require("fs");
 
 const ApiError = require("../utils/ApiError");
 const ROLES = require("../constants/roles");
+const config = require("../config");
 const documentRepository = require("../repositories/document.repository");
 const aiService = require("./ai.service");
 
@@ -118,7 +119,14 @@ async function verifyDocumentDownload(documentId, user = null) {
   }
 
   if (!fs.existsSync(document.storagePath)) {
-    throw new ApiError(404, "Stored document file was not found");
+    const fileName = path.basename(document.storagePath);
+    const candidatePath = path.resolve(config.uploadDir, fileName);
+    if (fs.existsSync(candidatePath)) {
+      document.storagePath = candidatePath;
+      await documentRepository.updateDocumentById(document.id, { storagePath: candidatePath });
+    } else {
+      throw new ApiError(404, "Stored document file was not found");
+    }
   }
 
   return document;
