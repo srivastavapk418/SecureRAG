@@ -11,7 +11,7 @@ import {
 
 export default function ProfileModal({ isOpen, onClose }) {
   const { user, updateUser, logout } = useAuth();
-  const isAdmin = user?.role === "ADMIN";
+  const isAdmin = user?.role?.toLowerCase() === "admin";
 
   const [activeTab, setActiveTab] = useState("profile");
   const [profileForm, setProfileForm] = useState({
@@ -34,7 +34,7 @@ export default function ProfileModal({ isOpen, onClose }) {
     email: "",
     password: "",
     department: "General",
-    role: "EMPLOYEE",
+    role: "employee",
   });
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -509,8 +509,8 @@ export default function ProfileModal({ isOpen, onClose }) {
                             setNewUserForm((prev) => ({ ...prev, role: e.target.value }))
                           }
                         >
-                          <option value="EMPLOYEE">EMPLOYEE</option>
-                          <option value="ADMIN">ADMIN</option>
+                          <option value="employee">Employee</option>
+                          <option value="admin">Admin</option>
                         </select>
                       </div>
                     </div>
@@ -534,6 +534,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                 <div className="users-stack scrollable-stack" style={{ maxHeight: "360px" }}>
                   {usersList.map((u) => {
                     const isSelf = (u.id || u._id) === (user.id || user._id);
+                    const isUserAdmin = u.role?.toLowerCase() === "admin";
                     return (
                       <div
                         key={u.id || u._id}
@@ -546,8 +547,8 @@ export default function ProfileModal({ isOpen, onClose }) {
                               width: "36px",
                               height: "36px",
                               borderRadius: "50%",
-                              background: u.role === "ADMIN" ? "rgba(99, 102, 241, 0.2)" : "rgba(59, 130, 246, 0.15)",
-                              color: u.role === "ADMIN" ? "#818cf8" : "#60a5fa",
+                              background: isUserAdmin ? "rgba(99, 102, 241, 0.2)" : "rgba(59, 130, 246, 0.15)",
+                              color: isUserAdmin ? "#818cf8" : "#60a5fa",
                               display: "grid",
                               placeItems: "center",
                               fontWeight: 700,
@@ -570,9 +571,10 @@ export default function ProfileModal({ isOpen, onClose }) {
                           <span
                             className="badge"
                             style={{
-                              background: u.role === "ADMIN" ? "rgba(99, 102, 241, 0.15)" : "rgba(148, 163, 184, 0.15)",
-                              color: u.role === "ADMIN" ? "#a5b4fc" : "var(--text-muted)",
+                              background: isUserAdmin ? "rgba(99, 102, 241, 0.15)" : "rgba(148, 163, 184, 0.15)",
+                              color: isUserAdmin ? "#a5b4fc" : "var(--text-muted)",
                               fontSize: "0.75rem",
+                              textTransform: "uppercase",
                             }}
                           >
                             {u.role}

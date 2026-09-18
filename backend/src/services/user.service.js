@@ -77,7 +77,7 @@ async function createUserByAdmin(payload) {
     name: payload.name.trim(),
     email: payload.email.toLowerCase().trim(),
     password: payload.password,
-    role: payload.role === ROLES.ADMIN ? ROLES.ADMIN : ROLES.EMPLOYEE,
+    role: String(payload.role || "").toLowerCase() === ROLES.ADMIN ? ROLES.ADMIN : ROLES.EMPLOYEE,
     department: payload.department ? payload.department.trim() : "General",
   });
 
