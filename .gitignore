@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+env/
+
+# Environment Variables & Secrets
+**/.env
+**/.env.*
+!**/.env.example
+
+# Build Outputs
+dist/
+build/
+coverage/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Storage & Vector Databases
+backend/storage/documents/*
+!backend/storage/documents/.gitkeep
+ai-service/data/chroma/*
+!ai-service/data/chroma/.gitkeep
+_ppt_extract/

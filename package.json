@@ -1,0 +1,14 @@
+{
+  "name": "enterprise-knowledge-assistant",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Private enterprise knowledge assistant with MERN frontend/backend and a Python AI service.",
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:ai": "py -m uvicorn app.main:app --reload --app-dir ai-service",
+    "build:frontend": "npm --prefix frontend run build",
+    "seed:admin": "npm --prefix backend run seed:admin"
+  }
+}
+
