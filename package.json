@@ -6,7 +6,6 @@
   "scripts": {
     "start": "node backend/src/server.js",
     "build": "npm --prefix backend install",
-    "postinstall": "npm --prefix backend install",
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:backend": "npm --prefix backend run dev",
     "dev:ai": "py -m uvicorn app.main:app --reload --app-dir ai-service",
