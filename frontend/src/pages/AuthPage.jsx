@@ -13,6 +13,7 @@ function AuthPage() {
     name: "",
     email: "",
     password: "",
+    department: "Engineering",
     bootstrapKey: "",
   });
   const [setupStatus, setSetupStatus] = useState({
@@ -185,14 +186,31 @@ function AuthPage() {
 
             <div className="auth-field-grid">
               {mode !== "login" ? (
-                <label>
-                  Full name
-                  <input
-                    value={form.name}
-                    onChange={(event) => updateField("name", event.target.value)}
-                    placeholder={mode === "admin" ? "Platform Administrator" : "Aarav Sharma"}
-                  />
-                </label>
+                <>
+                  <label>
+                    Full name
+                    <input
+                      value={form.name}
+                      onChange={(event) => updateField("name", event.target.value)}
+                      placeholder={mode === "admin" ? "Platform Administrator" : "Aarav Sharma"}
+                    />
+                  </label>
+
+                  <label>
+                    Department
+                    <select
+                      value={form.department}
+                      onChange={(event) => updateField("department", event.target.value)}
+                    >
+                      <option value="Engineering">Engineering</option>
+                      <option value="HR">Human Resources (HR)</option>
+                      <option value="Finance">Finance & Accounting</option>
+                      <option value="Legal">Legal & Compliance</option>
+                      <option value="Operations">Operations</option>
+                      <option value="General">General</option>
+                    </select>
+                  </label>
+                </>
               ) : null}
 
               <label>
