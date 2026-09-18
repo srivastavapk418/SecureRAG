@@ -9,8 +9,8 @@ async function bootstrap() {
 
   await connectToDatabase();
 
-  app.listen(config.port, () => {
-    console.log(`Backend listening on port ${config.port}`);
+  app.listen(config.port, "0.0.0.0", () => {
+    console.log(`Backend listening on port ${config.port} (0.0.0.0)`);
   });
 }
 
