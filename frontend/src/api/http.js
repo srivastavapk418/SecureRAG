@@ -1,5 +1,6 @@
 import axios from "axios";
 
+const DEPLOYED_RENDER_BACKEND = "https://securerag-backend-iz85.onrender.com/api/v1";
 const LOCAL_FALLBACK = "http://localhost:5000/api/v1";
 const STORAGE_KEY = "securerag_active_api_endpoint";
 const TOKEN_KEY = "securerag_token";
@@ -28,11 +29,13 @@ function normalizeApiBaseUrl(value) {
 }
 
 // 1. Resolve Primary and Fallback Endpoints
-// Priority: VITE_API_BASE_URL || VITE_RENDER_API_URL || LOCAL_FALLBACK
+// Priority: VITE_API_BASE_URL || VITE_RENDER_API_URL || DEPLOYED_RENDER_BACKEND (cloud) || LOCAL_FALLBACK
 const PRIMARY_URL =
   normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL) ||
   normalizeApiBaseUrl(import.meta.env.VITE_RENDER_API_URL) ||
-  LOCAL_FALLBACK;
+  (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1"
+    ? DEPLOYED_RENDER_BACKEND
+    : LOCAL_FALLBACK);
 
 const FALLBACK_URL =
   normalizeApiBaseUrl(import.meta.env.VITE_API_FALLBACK_URL) || "";
