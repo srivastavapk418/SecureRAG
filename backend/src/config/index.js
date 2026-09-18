@@ -20,17 +20,19 @@ function normalizeServiceUrl(value, fallback, envName) {
   }
 }
 
+const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
+  .split(",")
+  .map((url) => url.trim().replace(/\/$/, ""))
+  .filter(Boolean);
+
 const config = {
   nodeEnv: process.env.NODE_ENV || "development",
   port: Number(process.env.PORT || 5000),
   mongoUri:
     process.env.MONGO_URI ||
     "mongodb://127.0.0.1:27017/enterprise_knowledge_assistant",
-  clientUrl: normalizeServiceUrl(
-    process.env.CLIENT_URL,
-    "http://localhost:5173",
-    "CLIENT_URL"
-  ),
+  clientUrl: allowedOrigins[0] || "http://localhost:5173",
+  allowedOrigins,
   appUrl: normalizeServiceUrl(
     process.env.APP_URL,
     "http://localhost:5000",

@@ -1,0 +1,49 @@
+services:
+  # ============================================================================
+  # 1. SecureRAG Backend API (Containerized Node.js Express Service)
+  # ============================================================================
+  - type: web
+    name: securerag-backend
+    env: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    plan: free
+    region: oregon
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        value: "*"
+      - key: AI_SERVICE_URL
+        fromService:
+          type: web
+          name: securerag-ai-service
+          property: host
+
+  # ============================================================================
+  # 2. SecureRAG AI Service (Containerized Python FastAPI + Groq LPU + Chroma)
+  # ============================================================================
+  - type: web
+    name: securerag-ai-service
+    env: docker
+    dockerfilePath: ai-service/Dockerfile
+    dockerContext: ai-service
+    plan: free
+    region: oregon
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: LLM_PROVIDER
+        value: groq
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_CHAT_MODEL
+        value: groq/compound-mini

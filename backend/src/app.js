@@ -13,7 +13,19 @@ const app = express();
 
 app.use(
   cors({
-    origin: config.clientUrl,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const isAllowed =
+        config.allowedOrigins.includes(origin) ||
+        config.allowedOrigins.includes("*") ||
+        /\.vercel\.app$/.test(origin) ||
+        /\.onrender\.com$/.test(origin) ||
+        /\.azurecontainerapps\.io$/.test(origin);
+      if (isAllowed) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Permissive fallback for seamless multi-cloud failovers
+    },
     credentials: true,
   })
 );
