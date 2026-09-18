@@ -117,8 +117,30 @@ async function listSessionMessages({ sessionId, user }) {
   };
 }
 
+async function deleteSession({ sessionId, user }) {
+  const session = await chatRepository.findSessionById(sessionId);
+
+  if (!session) {
+    throw new ApiError(404, "Chat session not found");
+  }
+
+  if (user.role !== ROLES.ADMIN && session.user.toString() !== user.id.toString()) {
+    throw new ApiError(403, "You do not have permission to delete this chat session");
+  }
+
+  await chatRepository.deleteMessagesBySession(sessionId);
+  await chatRepository.deleteSessionById(sessionId);
+
+  return {
+    success: true,
+    message: "Chat session deleted successfully",
+    sessionId,
+  };
+}
+
 module.exports = {
   askQuestion,
   listSessions,
   listSessionMessages,
+  deleteSession,
 };

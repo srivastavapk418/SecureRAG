@@ -99,11 +99,21 @@ async function getDepartmentQueryVolume() {
   ]);
 }
 
+function deleteSessionById(sessionId) {
+  return ChatSession.findByIdAndDelete(sessionId);
+}
+
+function deleteMessagesBySession(sessionId) {
+  return ChatMessage.deleteMany({ session: sessionId });
+}
+
 module.exports = {
   createSession,
   findSessionById,
   listSessionsForUser,
   touchSession,
+  deleteSessionById,
+  deleteMessagesBySession,
   countSessions,
   countSessionsForUser,
   createMessage,

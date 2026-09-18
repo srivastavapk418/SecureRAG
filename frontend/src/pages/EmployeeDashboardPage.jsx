@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { askQuestion, getSessionMessages, listSessions } from "../api/chatApi";
+import { askQuestion, deleteSession, getSessionMessages, listSessions } from "../api/chatApi";
 import { getEmployeeOverview } from "../api/dashboardApi";
 import ChatComposer from "../components/chat/ChatComposer";
 import ChatMessageList from "../components/chat/ChatMessageList";
@@ -15,6 +15,7 @@ function EmployeeDashboardPage() {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingSessionId, setDeletingSessionId] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -47,6 +48,7 @@ function EmployeeDashboardPage() {
   }
 
   async function handleSelectSession(session) {
+    if (!session) return;
     setCurrentSession(session);
 
     try {
@@ -61,6 +63,53 @@ function EmployeeDashboardPage() {
     setCurrentSession(null);
     setMessages([]);
     setError("");
+  }
+
+  async function handleDeleteSession(sessionId, event) {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    if (!sessionId || deletingSessionId) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this chat session? All messages and citations in it will be permanently removed."
+    );
+    if (!confirmed) return;
+
+    setDeletingSessionId(sessionId);
+    setError("");
+
+    try {
+      await deleteSession(sessionId);
+
+      const nextSessions = sessions.filter((s) => s._id !== sessionId);
+      setSessions(nextSessions);
+
+      setOverview((current) => {
+        if (!current?.stats) return current;
+        return {
+          ...current,
+          stats: {
+            ...current.stats,
+            sessionCount: Math.max(0, (current.stats.sessionCount || 1) - 1),
+          },
+        };
+      });
+
+      // If the currently active session was deleted, switch to the first remaining or a fresh new chat
+      if (currentSession?._id === sessionId) {
+        if (nextSessions.length > 0) {
+          await handleSelectSession(nextSessions[0]);
+        } else {
+          startNewChat();
+        }
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete chat session.");
+    } finally {
+      setDeletingSessionId(null);
+    }
   }
 
   async function handleAsk(question) {
@@ -124,8 +173,8 @@ function EmployeeDashboardPage() {
   const sidebar = (
     <Sidebar
       brand="Knowledge Desk"
-      tagline="Grounded answers for employees"
-      footer={<p>Answers include one focused source reference so you can verify the answer quickly.</p>}
+      tagline="Grounded answers for enterprise"
+      footer={<p>Enterprise Zero-Data-Retention inference with cryptographically verified sources.</p>}
     >
       <div className="sidebar-group">
         <button
@@ -134,30 +183,59 @@ function EmployeeDashboardPage() {
           onClick={startNewChat}
           disabled={isSubmitting}
         >
-          Start new chat
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          New conversation
         </button>
       </div>
 
       <div className="sidebar-group">
-        <p className="sidebar-label">Recent chats</p>
+        <div className="sidebar-header-row">
+          <p className="sidebar-label">Recent conversations</p>
+          <span className="sidebar-count-badge">{sessions.length}</span>
+        </div>
         <div className="sidebar-stack">
           {sessions.length ? (
-            sessions.map((session) => (
-              <button
-                key={session._id}
-                type="button"
-                className={`sidebar-card ${
-                  currentSession?._id === session._id ? "active" : ""
-                }`}
-                onClick={() => handleSelectSession(session)}
-              >
-                <strong>{session.title}</strong>
-                <span>Updated {new Date(session.lastActivityAt).toLocaleString()}</span>
-              </button>
-            ))
+            sessions.map((session) => {
+              const isActive = currentSession?._id === session._id;
+              const isDeleting = deletingSessionId === session._id;
+
+              return (
+                <div
+                  key={session._id}
+                  className={`sidebar-session-item ${isActive ? "active" : ""}`}
+                  onClick={() => handleSelectSession(session)}
+                >
+                  <div className="sidebar-session-info">
+                    <strong>{session.title}</strong>
+                    <span>{new Date(session.lastActivityAt || session.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="sidebar-trash-btn"
+                    onClick={(e) => handleDeleteSession(session._id, e)}
+                    disabled={isDeleting}
+                    title="Delete chat session"
+                    aria-label={`Delete ${session.title}`}
+                  >
+                    {isDeleting ? (
+                      <span className="spinner-icon-sm" />
+                    ) : (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              );
+            })
           ) : (
             <div className="sidebar-card muted">
-              No chats yet. Start a conversation and your latest one will appear here.
+              No conversations yet. Start a new chat to ground answers in company documents.
             </div>
           )}
         </div>
@@ -165,7 +243,7 @@ function EmployeeDashboardPage() {
 
       {overview?.suggestions?.length ? (
         <div className="sidebar-group">
-          <p className="sidebar-label">Try asking</p>
+          <p className="sidebar-label">Quick prompts</p>
           <div className="sidebar-stack">
             {overview.suggestions.map((suggestion) => (
               <button
@@ -185,7 +263,7 @@ function EmployeeDashboardPage() {
   );
 
   if (isLoading) {
-    return <div className="screen-center">Loading employee workspace...</div>;
+    return <div className="screen-center">Loading enterprise workspace...</div>;
   }
 
   return (
@@ -200,7 +278,7 @@ function EmployeeDashboardPage() {
           onClick={startNewChat}
           disabled={isSubmitting}
         >
-          New chat
+          + New chat
         </button>
       }
     >
@@ -213,25 +291,48 @@ function EmployeeDashboardPage() {
           helper="Available for grounded answers"
         />
         <StatCard
-          label="Your chat sessions"
+          label="Saved chat sessions"
           value={overview?.stats?.sessionCount || 0}
-          helper="Saved and sorted by latest activity"
+          helper="Active sessions in your workspace"
         />
         <StatCard
           label="Questions asked"
           value={overview?.stats?.questionCount || 0}
-          helper="Usage across your personal workspace"
+          helper="Total queries executed"
         />
       </section>
 
-      <section className="chat-panel">
-        <div className="panel-header">
+      <section className="chat-panel modern-chat-panel">
+        <div className="panel-header chat-panel-header">
           <div>
-            <p className="eyebrow">Chat</p>
+            <p className="eyebrow">Active Workspace Thread</p>
             <h2>{currentSession?.title || "New conversation"}</h2>
           </div>
+          {currentSession?._id && (
+            <div className="chat-header-actions">
+              <button
+                type="button"
+                className="chat-delete-btn"
+                onClick={(e) => handleDeleteSession(currentSession._id, e)}
+                disabled={deletingSessionId === currentSession._id}
+                title="Delete this conversation"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                <span>Delete chat</span>
+              </button>
+            </div>
+          )}
         </div>
-        <ChatMessageList messages={messages} />
+
+        <ChatMessageList
+          messages={messages}
+          isSubmitting={isSubmitting}
+          onSelectPrompt={handleAsk}
+        />
+
         <ChatComposer onSubmit={handleAsk} isSubmitting={isSubmitting} />
       </section>
     </AppShell>

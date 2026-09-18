@@ -30,9 +30,19 @@ const getSessionMessages = asyncHandler(async (req, res) => {
   res.json(response);
 });
 
+const deleteSession = asyncHandler(async (req, res) => {
+  const response = await chatService.deleteSession({
+    sessionId: req.params.sessionId,
+    user: req.user,
+  });
+
+  res.json(response);
+});
+
 module.exports = {
   askQuestion,
   listSessions,
   getSessionMessages,
+  deleteSession,
 };
 

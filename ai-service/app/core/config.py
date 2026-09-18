@@ -26,7 +26,7 @@ class Settings(BaseSettings):
 
     # Groq (100% Permanent Free Tier with Zero Data Retention) settings
     groq_api_key: str = ""
-    groq_chat_model: str = "llama-3.1-8b-instant"
+    groq_chat_model: str = "groq/compound-mini"
 
     chunk_size: int = 1100
     chunk_overlap: int = 200

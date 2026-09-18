@@ -8,6 +8,7 @@ const router = express.Router();
 router.use(authenticate);
 router.get("/sessions", chatController.listSessions);
 router.get("/sessions/:sessionId/messages", chatController.getSessionMessages);
+router.delete("/sessions/:sessionId", chatController.deleteSession);
 router.post("/query", chatController.askQuestion);
 
 module.exports = router;
