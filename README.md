@@ -8,13 +8,13 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=flat&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Vercel](https://img.shields.io/badge/Vercel-Deploy_Ready-000000?style=flat&logo=vercel&logoColor=white)](https://vercel.com/)
-[![Azure](https://img.shields.io/badge/Azure-Container_Ready-0078D4?style=flat&logo=microsoft-azure&logoColor=white)](https://azure.microsoft.com/)
+[![Render](https://img.shields.io/badge/Render-Deploy_Ready-46E3B7?style=flat&logo=render&logoColor=white)](https://render.com/)
 
 An enterprise-grade, three-service document intelligence and retrieval platform engineered with strict role-based access control, document-level security policies, vector search isolation, and zero data retention privacy:
 
 - `frontend/`: React + Vite employee/admin portal (multi-stage Nginx container & Vercel 1-click ready)
 - `backend/`: Express + MongoDB API with HTTP-only JWT cookie auth, RBAC, and document access policies
-- `ai-service/`: Python FastAPI microservice with persistent ChromaDB and pluggable AI providers (Local Ollama, 100% Free Groq Llama 3.1, or Azure OpenAI)
+- `ai-service/`: Python FastAPI microservice with persistent ChromaDB and pluggable AI providers (Local Ollama or 100% Free Groq LPU with Zero Data Retention)
 
 The platform is designed for private enterprise knowledge retrieval. Admins upload internal documents with granular access levels (Public, Department-restricted, Admin-only). The AI service parses and chunks them into ChromaDB, and employees query the knowledge base with guaranteed vector-level isolation (unauthorized document chunks are never retrieved or seen by the LLM).
 
@@ -22,7 +22,7 @@ The platform is designed for private enterprise knowledge retrieval. Admins uplo
 
 - **Granular Document-Level Access Policies**: Public, Department-Restricted (Engineering, HR, Finance, etc.), and Admin-Only confidentiality tiers.
 - **Strict RAG Security & Vector Isolation**: ChromaDB vector retrieval queries are filtered using accessible document IDs, mathematically preventing sensitive document leaks.
-- **Enterprise AI Privacy & Zero Data Retention (ZDR)**: Supports offline on-premise Ollama models and cloud deployment on Azure via Azure OpenAI with Zero Data Retention (prompts are never stored or used to train public models).
+- **Enterprise AI Privacy & Zero Data Retention (ZDR)**: Supports offline on-premise Ollama models and cloud deployment on Render via Groq LPU with Zero Data Retention (prompts are never stored or used to train public models).
 - **Admin Analytics Dashboard**:
   - Knowledge chunks coverage & storage volume
   - Top Cited Knowledge Assets leaderboard with retrieval confidence scores
@@ -155,14 +155,14 @@ docker compose up --build
 - Document download endpoints require authentication
 - This implementation is single-tenant by deployment, which fits the "each company owns its own data" requirement from the PPT
 
-## Deployment & Security Documentation
+## Deployment & Cloud Architecture Documentation
 
-Detailed documentation on deploying to Azure container services, enabling Zero Data Retention (ZDR), and document-level access policy architecture is available in [docs/cloud_deployment_and_security.md](file:///c:/Users/sarwj/OneDrive/Desktop/SecureRAG/docs/cloud_deployment_and_security.md).
+Detailed documentation on zero-cost cloud deployment (Render + Vercel) is available in [deploy/README.md](file:///c:/Users/sarwj/OneDrive/Desktop/SecureRAG/deploy/README.md) and [docs/free_tier_deployment_guide.md](file:///c:/Users/sarwj/OneDrive/Desktop/SecureRAG/docs/free_tier_deployment_guide.md).
 
 ## Future Enhancements
 
 - Refresh-token rotation and CSRF protection
-- S3 or Azure Blob Storage backed document persistence
+- S3 or Cloud Object Storage backed document persistence
 - Celery / BullMQ background job queue for asynchronous batch ingestion
 - OCR engine for scanned image-only PDFs
 - Multi-tenant organization model for SaaS mode

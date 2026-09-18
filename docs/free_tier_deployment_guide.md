@@ -10,8 +10,8 @@ This guide explains how to deploy **SecureRAG** completely for **$0.00** without
 | :--- | :--- | :--- | :--- |
 | **Frontend** | **Vercel** | Global CDN for React/Vite SPA | **$0.00 Forever** |
 | **Database** | **MongoDB Atlas** | M0 Sandbox Cluster (512MB) | **$0.00 Forever** (No credit card) |
-| **Backend** | **Render / Azure F1** | Node.js Express API Web Service | **$0.00 Forever** |
-| **AI Microservice**| **Render / Hugging Face**| FastAPI + ChromaDB container | **$0.00 Forever** |
+| **Backend** | **Render** | Node.js Express API Web Service | **$0.00 Forever** |
+| **AI Microservice**| **Render** | FastAPI + ChromaDB container | **$0.00 Forever** |
 | **AI LLM Inference**| **Groq Cloud API** | Llama 3.1 8B (500+ tok/s, Zero Data Retention) | **$0.00 Forever** |
 
 ---
@@ -89,11 +89,3 @@ Render provides free web services directly from GitHub repositories:
      - `JWT_SECRET`: `your_secure_random_string`
      - `ADMIN_BOOTSTRAP_KEY`: `your_chosen_admin_key`
 
----
-
-## Alternative: Deploy as Docker Containers on Azure
-
-If you prefer Azure:
-- **Azure App Service**: Use the **F1 (Free)** tier to run the Docker container.
-- **Azure Container Apps**: Offers a permanent free tier grant of **180,000 vCPU-seconds and 360,000 GiB-seconds free every month**.
-- Configure the exact same environment variables as above.

@@ -27,20 +27,15 @@ function normalizeApiBaseUrl(value) {
   }
 }
 
-// 1. Resolve Primary and Fallback Endpoints intelligently
-// If Azure is configured, Azure is primary.
-// If only Render is configured, Render is primary!
-// If local/custom, use API_BASE_URL or fallback to localhost.
+// 1. Resolve Primary and Fallback Endpoints
+// Priority: VITE_API_BASE_URL || VITE_RENDER_API_URL || LOCAL_FALLBACK
 const PRIMARY_URL =
-  normalizeApiBaseUrl(import.meta.env.VITE_AZURE_API_URL) ||
-  normalizeApiBaseUrl(import.meta.env.VITE_RENDER_API_URL) ||
   normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL) ||
+  normalizeApiBaseUrl(import.meta.env.VITE_RENDER_API_URL) ||
   LOCAL_FALLBACK;
 
 const FALLBACK_URL =
-  import.meta.env.VITE_AZURE_API_URL && import.meta.env.VITE_RENDER_API_URL
-    ? normalizeApiBaseUrl(import.meta.env.VITE_RENDER_API_URL)
-    : normalizeApiBaseUrl(import.meta.env.VITE_API_FALLBACK_URL) || "";
+  normalizeApiBaseUrl(import.meta.env.VITE_API_FALLBACK_URL) || "";
 
 // 2. Active Endpoint Manager
 function getActiveBaseUrl() {
