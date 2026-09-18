@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
+// SecureRAG Frontend v1.1 - Dashboard Scrollbars & Profile Management
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import { useAuth } from "./hooks/useAuth";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
