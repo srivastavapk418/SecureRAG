@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { getSetupStatus } from "../api/authApi";
-import { getActiveBaseUrl, setActiveBaseUrl } from "../api/http";
 import { useAuth } from "../hooks/useAuth";
 
 function AuthPage() {
@@ -23,8 +22,6 @@ function AuthPage() {
   });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [serverUrlInput, setServerUrlInput] = useState(() => getActiveBaseUrl());
-  const [showServerConfig, setShowServerConfig] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -95,17 +92,10 @@ function AuthPage() {
       const nextPath = location.state?.from?.pathname || fallbackPath;
       navigate(nextPath, { replace: true });
     } catch (requestError) {
-      const activeEndpoint = getActiveBaseUrl();
       if (requestError.code === "ECONNABORTED") {
-        setError(`Backend at [${activeEndpoint}] is waking up from cold start (~45s). Please wait a few moments and click again.`);
+        setError("The backend server is waking up from a free-tier cold start (~45s). Please wait a few moments and try again.");
       } else if (!requestError.response) {
-        setError(
-          `Unable to connect to backend at [${activeEndpoint}]. ` +
-          (activeEndpoint.includes("localhost")
-            ? "Your deployed app is trying to connect to localhost because VITE_RENDER_API_URL is missing in Vercel settings. Click 'Change Server' below to paste your Render backend URL."
-            : "The Render service may still be booting up or deploying. Check your Render dashboard or paste an updated URL below.")
-        );
-        setShowServerConfig(true);
+        setError("Unable to connect to backend server. If using Render free tier, the service may be spinning up.");
       } else {
         setError(requestError.response?.data?.message || "Unable to complete authentication.");
       }
@@ -266,44 +256,6 @@ function AuthPage() {
             <button className="primary-button full-width" type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Please wait..." : modeConfig[mode].buttonLabel}
             </button>
-
-            <div className="auth-server-settings">
-              <div className="auth-server-status">
-                <small>API Server: <strong>{getActiveBaseUrl()}</strong></small>
-                <button
-                  type="button"
-                  className="link-style-btn"
-                  onClick={() => setShowServerConfig(!showServerConfig)}
-                >
-                  {showServerConfig ? "Close" : "Change Server"}
-                </button>
-              </div>
-
-              {showServerConfig && (
-                <div className="auth-server-edit-row">
-                  <input
-                    type="text"
-                    value={serverUrlInput}
-                    onChange={(e) => setServerUrlInput(e.target.value)}
-                    placeholder="https://your-backend.onrender.com"
-                  />
-                  <button
-                    type="button"
-                    className="ghost-button"
-                    onClick={() => {
-                      const updated = setActiveBaseUrl(serverUrlInput);
-                      if (updated) {
-                        setError("");
-                        setShowServerConfig(false);
-                        window.location.reload();
-                      }
-                    }}
-                  >
-                    Connect
-                  </button>
-                </div>
-              )}
-            </div>
           </form>
         </div>
       </section>
