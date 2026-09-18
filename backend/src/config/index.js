@@ -10,8 +10,12 @@ function normalizeServiceUrl(value, fallback, envName) {
     return fallback;
   }
 
+  const withProtocol = rawValue.startsWith("http://") || rawValue.startsWith("https://")
+    ? rawValue
+    : `http://${rawValue}`;
+
   try {
-    return new URL(rawValue).toString().replace(/\/$/, "");
+    return new URL(withProtocol).toString().replace(/\/$/, "");
   } catch (_error) {
     console.warn(
       `[config] Invalid ${envName} value "${rawValue}". Falling back to ${fallback}.`
