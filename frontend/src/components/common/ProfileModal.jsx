@@ -330,8 +330,8 @@ export default function ProfileModal({ isOpen, onClose }) {
 
                 <div className="profile-divider" />
 
-                <h4 style={{ margin: "0 0 0.75rem 0", fontSize: "0.95rem" }}>
-                  Change Password (Optional)
+                <h4 className="profile-section-title">
+                  🔒 Change Password (Optional)
                 </h4>
                 <div className="profile-form-grid">
                   <div className="form-group">

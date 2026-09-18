@@ -263,7 +263,7 @@ function AdminDashboardPage() {
           </form>
         </article>
 
-        <article className="panel">
+        <article className="panel leaderboard-panel">
           <div className="panel-header">
             <div>
               <p className="eyebrow">Document Intelligence Leaderboard</p>
