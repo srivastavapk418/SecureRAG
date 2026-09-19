@@ -43,12 +43,26 @@ function checkDocumentAccess(document, user) {
 
 async function indexStoredDocument(document) {
   try {
+    let fileBase64 = null;
+    if (document.storagePath) {
+      const resolved = path.resolve(document.storagePath);
+      if (fs.existsSync(resolved)) {
+        fileBase64 = fs.readFileSync(resolved).toString("base64");
+      } else {
+        const candidate = path.resolve(config.uploadDir, path.basename(document.storagePath));
+        if (fs.existsSync(candidate)) {
+          fileBase64 = fs.readFileSync(candidate).toString("base64");
+        }
+      }
+    }
+
     const ingestResult = await aiService.ingestDocument({
       document_id: document.id,
       title: document.title,
       source_name: document.originalName,
       file_path: document.storagePath,
       mime_type: document.mimeType,
+      file_content_base64: fileBase64,
     });
 
     return await documentRepository.updateDocumentById(document.id, {

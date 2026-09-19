@@ -2,6 +2,7 @@ import httpx
 from fastapi import HTTPException
 
 from app.core.config import Settings
+from app.services.embedding_service import generate_fallback_embeddings
 from app.services.ollama_client import OllamaClient
 
 
@@ -21,38 +22,40 @@ class GroqClient:
 
     async def embed_texts(self, texts: list[str]) -> list[list[float]]:
         """
-        Embed texts using local Ollama if available, or free HuggingFace feature extraction
-        as a zero-cost cloud fallback.
+        Embed texts using:
+        1. Local Ollama if running
+        2. Hugging Face Inference API if HF token is configured
+        3. Native self-contained Chroma ONNX MiniLM embeddings (100% free, runs locally on CPU)
         """
         if not texts:
             return []
 
-        # Try local Ollama embedding first
+        # 1. Try local Ollama embedding first (if running)
         try:
             return await self.ollama_client.embed_texts(texts)
         except Exception:
             pass
 
-        # Free Cloud Fallback: Hugging Face public embedding API
-        hf_url = "https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2"
-        try:
-            async with httpx.AsyncClient(timeout=self.settings.ollama_timeout_seconds) as client:
-                response = await client.post(
-                    hf_url,
-                    json={"inputs": texts, "options": {"wait_for_model": True}},
-                )
-                if response.status_code == 200:
-                    data = response.json()
-                    if isinstance(data, list) and len(data) > 0 and isinstance(data[0], list):
-                        return data
-        except Exception:
-            pass
+        # 2. Try Hugging Face Inference API if token is configured
+        hf_token = getattr(self.settings, "hf_token", None)
+        if hf_token:
+            hf_url = "https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2"
+            try:
+                async with httpx.AsyncClient(timeout=self.settings.ollama_timeout_seconds) as client:
+                    response = await client.post(
+                        hf_url,
+                        headers={"Authorization": f"Bearer {hf_token}"},
+                        json={"inputs": texts, "options": {"wait_for_model": True}},
+                    )
+                    if response.status_code == 200:
+                        data = response.json()
+                        if isinstance(data, list) and len(data) > 0 and isinstance(data[0], list):
+                            return data
+            except Exception:
+                pass
 
-        # If external embeddings fail, raise descriptive error
-        raise HTTPException(
-            status_code=502,
-            detail="Embedding generation failed. Please ensure Ollama is running or configure embeddings.",
-        )
+        # 3. Native self-contained Chroma ONNX MiniLM-L6-v2 embeddings
+        return await generate_fallback_embeddings(texts)
 
     async def generate_answer(self, question: str, context_blocks: list[str]) -> str:
         if not self.api_key:

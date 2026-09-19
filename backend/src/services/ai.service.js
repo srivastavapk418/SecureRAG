@@ -5,7 +5,9 @@ const ApiError = require("../utils/ApiError");
 
 const aiClient = axios.create({
   baseURL: config.aiServiceUrl,
-  timeout: 120000,
+  timeout: 180000,
+  maxContentLength: 50 * 1024 * 1024,
+  maxBodyLength: 50 * 1024 * 1024,
 });
 
 function extractAiServiceMessage(error, fallbackMessage) {

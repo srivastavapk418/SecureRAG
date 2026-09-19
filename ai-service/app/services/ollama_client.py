@@ -44,10 +44,15 @@ class OllamaClient:
                 except Exception as error:  # noqa: BLE001
                     errors.append(f"{model_name}: {self._format_error(error)}")
 
-            raise ValueError(
-                "Unable to create embeddings with the available Ollama models. "
-                + " | ".join(errors[:3])
-            )
+            # If Ollama is not running or models are missing, fall back to native ONNX MiniLM
+            try:
+                from app.services.embedding_service import generate_fallback_embeddings
+                return await generate_fallback_embeddings(normalized_texts)
+            except Exception:
+                raise ValueError(
+                    "Unable to create embeddings with Ollama: "
+                    + " | ".join(errors[:3])
+                )
 
     async def generate_answer(self, question: str, context_blocks: list[str]) -> str:
         context = "\n\n".join(context_blocks)
