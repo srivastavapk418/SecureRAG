@@ -4,6 +4,7 @@ import tempfile
 
 from fastapi import HTTPException
 
+from app.core.config import get_settings
 from app.schemas.ingestion import (
     DocumentIngestionRequest,
     DocumentIngestionResponse,
