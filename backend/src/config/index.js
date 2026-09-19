@@ -11,6 +11,15 @@ function normalizeServiceUrl(value, fallback, envName) {
     return fallback;
   }
 
+  // On Render Free Tier, internal private networking (e.g. securerag-ai-service) cannot receive inbound traffic.
+  // Automatically route to the active public HTTPS domain on Render.
+  if (
+    rawValue.includes("securerag-ai-service") &&
+    !rawValue.includes(".onrender.com")
+  ) {
+    return "https://securerag-ai-service.onrender.com";
+  }
+
   const withProtocol = rawValue.startsWith("http://") || rawValue.startsWith("https://")
     ? rawValue
     : `http://${rawValue}`;
@@ -45,7 +54,9 @@ const config = {
   ),
   aiServiceUrl: normalizeServiceUrl(
     process.env.AI_SERVICE_URL,
-    "http://localhost:8000",
+    process.env.NODE_ENV === "production"
+      ? "https://securerag-ai-service.onrender.com"
+      : "http://localhost:8000",
     "AI_SERVICE_URL"
   ),
   uploadDir: process.env.UPLOAD_DIR

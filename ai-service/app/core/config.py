@@ -26,7 +26,7 @@ class Settings(BaseSettings):
 
     # Groq (100% Permanent Free Tier with Zero Data Retention) settings
     groq_api_key: str = ""
-    groq_chat_model: str = "llama-3.3-70b-versatile"
+    groq_chat_model: str = "openai/gpt-oss-20b"
 
     chunk_size: int = 1100
     chunk_overlap: int = 200

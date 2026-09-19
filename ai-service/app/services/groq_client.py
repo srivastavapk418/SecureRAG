@@ -17,12 +17,7 @@ class GroqClient:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.api_key = (settings.groq_api_key or "").strip()
-        raw_model = (settings.groq_chat_model or "llama-3.3-70b-versatile").strip()
-        if raw_model.startswith("groq/"):
-            raw_model = raw_model[len("groq/") :]
-        if "compound" in raw_model.lower() or not raw_model:
-            raw_model = "llama-3.3-70b-versatile"
-        self.model = raw_model
+        self.model = (settings.groq_chat_model or "openai/gpt-oss-20b").strip()
         self.base_url = "https://api.groq.com/openai/v1"
         self.ollama_client = OllamaClient(settings)
 
@@ -78,9 +73,9 @@ class GroqClient:
             "Content-Type": "application/json",
         }
 
-        # Candidate models to try in order of capability & availability
+        # Candidate models to try in order of capability & availability on Groq
         candidates = [self.model]
-        for fallback in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"]:
+        for fallback in ["openai/gpt-oss-20b", "groq/compound-mini", "openai/gpt-oss-120b", "qwen/qwen3.8-27b"]:
             if fallback not in candidates:
                 candidates.append(fallback)
 
