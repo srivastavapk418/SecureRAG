@@ -19,7 +19,20 @@ function errorHandler(error, _req, res, _next) {
     });
   }
 
-  console.error(error);
+  if (error.name === "ValidationError") {
+    const messages = Object.values(error.errors || {}).map((e) => e.message);
+    return res.status(400).json({
+      message: messages.join(", ") || "Validation failed",
+    });
+  }
+
+  if (error.name === "CastError") {
+    return res.status(400).json({
+      message: `Invalid ${error.path}: ${error.value}`,
+    });
+  }
+
+  console.error("Unhandled server error:", error);
 
   return res.status(500).json({
     message: "Internal server error",

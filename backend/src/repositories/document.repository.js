@@ -35,13 +35,25 @@ function deleteDocumentById(documentId) {
   return Document.findByIdAndDelete(documentId);
 }
 
+function getDepartmentRegexList(department) {
+  const raw = (department || "General").trim();
+  const parts = raw
+    .split(/[&,/]/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const allDepts = Array.from(new Set([raw, ...parts]));
+  return allDepts.map(
+    (d) => new RegExp(`^${d.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i")
+  );
+}
+
 async function findAccessibleDocumentIds(department) {
-  const deptRegex = new RegExp(`^${(department || "General").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+  const deptRegexes = getDepartmentRegexList(department);
   const filter = {
     $or: [
       { accessLevel: "public" },
       { accessLevel: { $exists: false } },
-      { accessLevel: "department", allowedDepartments: { $elemMatch: { $regex: deptRegex } } },
+      { accessLevel: "department", allowedDepartments: { $in: deptRegexes } },
     ],
   };
   const docs = await Document.find(filter).select("_id");
@@ -49,12 +61,12 @@ async function findAccessibleDocumentIds(department) {
 }
 
 async function findAccessibleDocuments(department) {
-  const deptRegex = new RegExp(`^${(department || "General").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+  const deptRegexes = getDepartmentRegexList(department);
   const filter = {
     $or: [
       { accessLevel: "public" },
       { accessLevel: { $exists: false } },
-      { accessLevel: "department", allowedDepartments: { $elemMatch: { $regex: deptRegex } } },
+      { accessLevel: "department", allowedDepartments: { $in: deptRegexes } },
     ],
   };
   return Document.find(filter)

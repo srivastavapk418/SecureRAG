@@ -51,7 +51,7 @@ async function login(payload) {
   }
 
   user.lastLoginAt = new Date();
-  await user.save();
+  await userRepository.updateUser(user.id, { lastLoginAt: user.lastLoginAt });
 
   const safeUser = user.toObject();
   delete safeUser.password;
