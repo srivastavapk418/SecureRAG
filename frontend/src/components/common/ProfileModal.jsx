@@ -43,7 +43,7 @@ export default function ProfileModal({ isOpen, onClose }) {
     if (isOpen && user) {
       setProfileForm({
         name: user.name || "",
-        department: user.department || "",
+        department: user.department || "General",
         password: "",
         confirmPassword: "",
       });
@@ -316,9 +316,9 @@ export default function ProfileModal({ isOpen, onClose }) {
                       className={!isAdmin ? "input-disabled" : ""}
                     >
                       <option value="Engineering">Engineering</option>
-                      <option value="HR">HR</option>
-                      <option value="Finance">Finance</option>
-                      <option value="Legal">Legal</option>
+                      <option value="HR">Human Resources (HR)</option>
+                      <option value="Finance">Finance &amp; Accounting</option>
+                      <option value="Legal">Legal &amp; Compliance</option>
                       <option value="Operations">Operations</option>
                       <option value="General">General</option>
                     </select>
@@ -511,9 +511,9 @@ export default function ProfileModal({ isOpen, onClose }) {
                           }
                         >
                           <option value="Engineering">Engineering</option>
-                          <option value="HR">HR</option>
-                          <option value="Finance">Finance</option>
-                          <option value="Legal">Legal</option>
+                          <option value="HR">Human Resources (HR)</option>
+                          <option value="Finance">Finance &amp; Accounting</option>
+                          <option value="Legal">Legal &amp; Compliance</option>
                           <option value="Operations">Operations</option>
                           <option value="General">General</option>
                         </select>

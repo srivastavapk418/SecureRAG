@@ -241,21 +241,28 @@ function AdminDashboardPage() {
                   Allowed Departments
                 </label>
                 <div className="dept-checkbox-list">
-                  {["Engineering", "HR", "Finance", "Legal", "Operations", "General"].map((dept) => (
-                    <label key={dept} className="dept-checkbox-item">
+                  {[
+                    { value: "Engineering", label: "Engineering" },
+                    { value: "HR", label: "Human Resources (HR)" },
+                    { value: "Finance", label: "Finance & Accounting" },
+                    { value: "Legal", label: "Legal & Compliance" },
+                    { value: "Operations", label: "Operations" },
+                    { value: "General", label: "General" },
+                  ].map(({ value, label }) => (
+                    <label key={value} className="dept-checkbox-item">
                       <input
                         type="checkbox"
-                        checked={form.allowedDepartments.includes(dept)}
+                        checked={form.allowedDepartments.includes(value)}
                         onChange={(e) => {
                           setForm((current) => ({
                             ...current,
                             allowedDepartments: e.target.checked
-                              ? [...current.allowedDepartments, dept]
-                              : current.allowedDepartments.filter((d) => d !== dept),
+                              ? [...current.allowedDepartments, value]
+                              : current.allowedDepartments.filter((d) => d !== value),
                           }));
                         }}
                       />
-                      <span>{dept}</span>
+                      <span>{label}</span>
                     </label>
                   ))}
                 </div>
