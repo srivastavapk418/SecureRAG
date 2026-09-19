@@ -4,8 +4,11 @@ import tempfile
 
 from fastapi import HTTPException
 
-from app.core.config import get_settings
-from app.schemas.ingestion import DocumentIngestionRequest, DocumentIngestionResponse
+from app.schemas.ingestion import (
+    DocumentIngestionRequest,
+    DocumentIngestionResponse,
+    IngestedChunkSummary,
+)
 from app.schemas.query import Citation, QueryRequest, QueryResponse
 from app.services.chunker import build_chunks
 from app.services.document_parser import parse_document
@@ -101,6 +104,17 @@ class RagService:
                 document_id=payload.document_id,
                 status="indexed",
                 chunk_count=len(chunks),
+                chunks=[
+                    IngestedChunkSummary(
+                        chunk_index=int(c["chunk_index"]),
+                        section=str(c.get("section") or ""),
+                        locator=str(c.get("locator") or c.get("section") or ""),
+                        page_number=int(c["page_number"]) if c.get("page_number") else None,
+                        text=str(c["text"]),
+                        snippet=str(c.get("snippet") or c["text"][:240]),
+                    )
+                    for c in chunks
+                ],
             )
         finally:
             if temp_file_to_clean and temp_file_to_clean.exists():
@@ -155,35 +169,68 @@ class RagService:
             )
 
         citations: list[Citation] = []
+        seen_citation_keys: set[str] = set()
 
-        # 2. Add retrieved document chunks if matches exist
-        if matches:
-            primary_document_id = str(matches[0]["document_id"])
-            primary_matches = [
-                match for match in matches if str(match["document_id"]) == primary_document_id
-            ] or [matches[0]]
-            context_matches = primary_matches[:3]
+        # 2. Collect candidate chunks from vector store
+        all_candidate_chunks = list(matches)
 
-            for match in context_matches:
-                context_blocks.append(
-                    f"[Source: {match['document_title']} | Section: {match['section']} | "
-                    f"Chunk: {match['chunk_index']}]\n{match['text']}"
-                )
+        # 3. Merge persistent context chunks from MongoDB if provided
+        if payload.context_chunks:
+            existing_ids = {
+                f"{c['document_id']}:{c['chunk_index']}" for c in all_candidate_chunks
+            }
+            for p_chunk in payload.context_chunks:
+                cid = f"{p_chunk.document_id}:{p_chunk.chunk_index}"
+                if cid not in existing_ids:
+                    all_candidate_chunks.append(
+                        {
+                            "document_id": p_chunk.document_id,
+                            "document_title": p_chunk.document_title,
+                            "source_name": p_chunk.source_name,
+                            "section": p_chunk.section,
+                            "locator": p_chunk.locator or p_chunk.section,
+                            "page_number": p_chunk.page_number,
+                            "text": p_chunk.text,
+                            "snippet": p_chunk.snippet or p_chunk.text[:240],
+                            "chunk_index": p_chunk.chunk_index,
+                            "score": 0.85,
+                        }
+                    )
+                    existing_ids.add(cid)
 
-            primary_reference = context_matches[0]
-            # Include citation if relevance score is meaningful
-            if float(primary_reference["score"]) >= 0.35:
+        # 4. Rank candidate chunks and assemble rich multi-document context blocks
+        all_candidate_chunks.sort(
+            key=lambda x: float(x.get("score", 0.0)), reverse=True
+        )
+        selected_chunks = all_candidate_chunks[: min(len(all_candidate_chunks), 6)]
+
+        for chunk in selected_chunks:
+            page_info = (
+                f" | Page: {chunk['page_number']}"
+                if chunk.get("page_number")
+                else ""
+            )
+            context_blocks.append(
+                f"[Document: {chunk['document_title']} | Section: {chunk['section']}{page_info} | "
+                f"Chunk: {chunk['chunk_index']}]\n{chunk['text']}"
+            )
+
+            cite_key = f"{chunk['document_id']}:{chunk.get('page_number') or chunk['chunk_index']}"
+            if cite_key not in seen_citation_keys and float(
+                chunk.get("score", 0.0)
+            ) >= 0.20:
+                seen_citation_keys.add(cite_key)
                 citations.append(
                     Citation(
-                        document_id=str(primary_reference["document_id"]),
-                        document_title=str(primary_reference["document_title"]),
-                        source_name=str(primary_reference["source_name"]),
-                        locator=str(primary_reference.get("locator") or primary_reference["section"]),
-                        snippet=str(primary_reference["snippet"]),
-                        chunk_index=int(primary_reference["chunk_index"]),
-                        score=float(primary_reference["score"]),
-                        page_number=int(primary_reference["page_number"])
-                        if primary_reference.get("page_number")
+                        document_id=str(chunk["document_id"]),
+                        document_title=str(chunk["document_title"]),
+                        source_name=str(chunk["source_name"]),
+                        locator=str(chunk.get("locator") or chunk["section"]),
+                        snippet=str(chunk["snippet"]),
+                        chunk_index=int(chunk["chunk_index"]),
+                        score=float(chunk.get("score", 0.0)),
+                        page_number=int(chunk["page_number"])
+                        if chunk.get("page_number")
                         else None,
                     )
                 )

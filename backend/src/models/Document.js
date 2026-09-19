@@ -71,6 +71,20 @@ const documentSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    chunks: [
+      {
+        chunkIndex: { type: Number, required: true },
+        section: { type: String, default: "" },
+        locator: { type: String, default: "" },
+        pageNumber: { type: Number, default: null },
+        text: { type: String, required: true },
+        snippet: { type: String, default: "" },
+      },
+    ],
+    fileBase64: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

@@ -8,6 +8,18 @@ class AccessibleDocumentSummary(BaseModel):
     accessLevel: str | None = None
 
 
+class ChunkPayload(BaseModel):
+    document_id: str
+    document_title: str
+    source_name: str
+    section: str = ""
+    locator: str = ""
+    page_number: int | None = None
+    text: str
+    snippet: str = ""
+    chunk_index: int = 0
+
+
 class QueryRequest(BaseModel):
     question: str = Field(..., min_length=1)
     user_id: str = Field(..., min_length=1)
@@ -15,6 +27,7 @@ class QueryRequest(BaseModel):
     top_k: int = Field(default=5, ge=1, le=10)
     allowed_document_ids: list[str] | None = None
     accessible_documents: list[AccessibleDocumentSummary] | None = None
+    context_chunks: list[ChunkPayload] | None = None
 
 
 class Citation(BaseModel):

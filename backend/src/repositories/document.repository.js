@@ -70,7 +70,7 @@ async function findAccessibleDocuments(department) {
     ],
   };
   return Document.find(filter)
-    .select("_id title originalName accessLevel allowedDepartments ingestStatus chunkCount")
+    .select("_id title originalName accessLevel allowedDepartments ingestStatus chunkCount chunks")
     .sort({ createdAt: -1 });
 }
 

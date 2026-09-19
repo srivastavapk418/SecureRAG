@@ -10,8 +10,18 @@ class DocumentIngestionRequest(BaseModel):
     file_content_base64: str | None = None
 
 
+class IngestedChunkSummary(BaseModel):
+    chunk_index: int
+    section: str = ""
+    locator: str = ""
+    page_number: int | None = None
+    text: str
+    snippet: str = ""
+
+
 class DocumentIngestionResponse(BaseModel):
     document_id: str
     status: str
     chunk_count: int
+    chunks: list[IngestedChunkSummary] | None = None
 

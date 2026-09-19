@@ -12,15 +12,23 @@ def split_text(text: str, chunk_size: int, overlap: int) -> list[str]:
 
         if end < len(text):
             candidate = text[start:end]
-            preferred_break = max(
-                candidate.rfind("\n\n"),
-                candidate.rfind("\n"),
-                candidate.rfind(". "),
-                candidate.rfind(" "),
-            )
+            preferred_break = -1
+            min_break = int(chunk_size * 0.4)
 
-            if preferred_break > int(chunk_size * 0.6):
-                end = start + preferred_break + 1
+            # Check in priority order: paragraphs -> sentences -> words
+            for delimiter in ["\n\n", "\n", ". ", "? ", "! "]:
+                idx = candidate.rfind(delimiter)
+                if idx > min_break:
+                    preferred_break = idx + len(delimiter)
+                    break
+
+            if preferred_break == -1:
+                idx = candidate.rfind(" ")
+                if idx > min_break:
+                    preferred_break = idx + 1
+
+            if preferred_break > 0:
+                end = start + preferred_break
 
         chunk = text[start:end].strip()
 

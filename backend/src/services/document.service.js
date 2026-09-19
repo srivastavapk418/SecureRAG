@@ -65,13 +65,30 @@ async function indexStoredDocument(document) {
       file_content_base64: fileBase64,
     });
 
-    return await documentRepository.updateDocumentById(document.id, {
+    const updatePayload = {
       ingestStatus: "indexed",
       ingestError: "",
       chunkCount: ingestResult.chunk_count || 0,
       aiDocumentId: ingestResult.document_id || document.id,
       lastIndexedAt: new Date(),
-    });
+    };
+
+    if (Array.isArray(ingestResult.chunks) && ingestResult.chunks.length > 0) {
+      updatePayload.chunks = ingestResult.chunks.map((c) => ({
+        chunkIndex: c.chunk_index,
+        section: c.section || "",
+        locator: c.locator || c.section || "",
+        pageNumber: c.page_number || null,
+        text: c.text,
+        snippet: c.snippet || c.text.slice(0, 240),
+      }));
+    }
+
+    if (fileBase64) {
+      updatePayload.fileBase64 = fileBase64;
+    }
+
+    return await documentRepository.updateDocumentById(document.id, updatePayload);
   } catch (error) {
     await documentRepository.updateDocumentById(document.id, {
       ingestStatus: "failed",

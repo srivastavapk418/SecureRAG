@@ -78,6 +78,44 @@ async function askQuestion({ user, sessionId, question }) {
       accessLevel: doc.accessLevel || "public",
     }));
 
+  // Extract keywords from user question for fail-safe chunk retrieval
+  const stopWords = new Set(["what", "when", "where", "which", "with", "from", "that", "this", "have", "does", "about", "some", "the", "and", "for", "our", "are", "can", "you", "tell"]);
+  const keywords = (question.toLowerCase().match(/[a-z0-9]{3,}/g) || []).filter(
+    (w) => !stopWords.has(w)
+  );
+
+  const candidateChunks = [];
+  for (const doc of accessibleDocuments || []) {
+    if (doc.ingestStatus === "indexed" && Array.isArray(doc.chunks) && doc.chunks.length > 0) {
+      for (const chunk of doc.chunks) {
+        const textLower = (chunk.text || "").toLowerCase();
+        const sectionLower = (chunk.section || "").toLowerCase();
+        let matchScore = 0;
+        for (const kw of keywords) {
+          if (textLower.includes(kw)) matchScore += 2;
+          if (sectionLower.includes(kw)) matchScore += 3;
+        }
+        if (matchScore > 0 || doc.chunks.length <= 3) {
+          candidateChunks.push({
+            document_id: (doc.id || doc._id).toString(),
+            document_title: doc.title,
+            source_name: doc.originalName || doc.title,
+            section: chunk.section || "",
+            locator: chunk.locator || chunk.section || "",
+            page_number: chunk.pageNumber || null,
+            text: chunk.text,
+            snippet: chunk.snippet || chunk.text.slice(0, 240),
+            chunk_index: chunk.chunkIndex,
+            matchScore,
+          });
+        }
+      }
+    }
+  }
+
+  candidateChunks.sort((a, b) => b.matchScore - a.matchScore);
+  const selectedContextChunks = candidateChunks.slice(0, 8).map(({ matchScore, ...rest }) => rest);
+
   let aiResponse;
   try {
     aiResponse = await aiService.queryAssistant({
@@ -87,8 +125,10 @@ async function askQuestion({ user, sessionId, question }) {
       top_k: 5,
       allowed_document_ids: allowedDocumentIds,
       accessible_documents: accessibleCatalog,
+      context_chunks: selectedContextChunks,
     });
   } catch (error) {
+    console.error("aiService.queryAssistant failed:", error?.message || error);
     const catalogCount = accessibleCatalog.length;
     const docNames = accessibleCatalog.map((d) => `• ${d.title}`).join("\n");
     aiResponse = {
