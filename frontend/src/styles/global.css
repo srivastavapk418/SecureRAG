@@ -1053,6 +1053,54 @@ a {
   gap: 1rem;
 }
 
+/* Department Checkbox Multi-select */
+.dept-checkbox-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.dept-checkbox-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.dept-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+  user-select: none;
+}
+
+.dept-checkbox-item:hover {
+  border-color: var(--accent);
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--text-primary);
+}
+
+.dept-checkbox-item input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.dept-checkbox-item:has(input:checked) {
+  border-color: var(--accent);
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-light, #a5b4fc);
+}
+
 .list-row {
   padding: 0.95rem 1.1rem;
   border-radius: 18px;
@@ -2117,6 +2165,10 @@ a {
   .user-actions-col {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .dept-checkbox-list {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

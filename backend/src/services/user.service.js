@@ -13,18 +13,28 @@ async function getProfile(userId) {
   return user;
 }
 
-async function updateProfile(userId, payload) {
+async function updateProfile(userId, payload, requestingUser = null) {
   const user = await userRepository.findById(userId);
   if (!user) {
     throw new ApiError(404, "User not found");
   }
 
+  const isAdmin = requestingUser && requestingUser.role === ROLES.ADMIN;
+
   const updates = {};
   if (payload.name && payload.name.trim()) {
     updates.name = payload.name.trim();
   }
-  if (payload.department && payload.department.trim()) {
-    updates.department = payload.department.trim();
+  // Only admins can reassign a user's department.
+  // Employees who submit a department value are silently ignored — the field
+  // is disabled on the frontend, but we enforce this server-side too.
+  if (isAdmin && payload.department && payload.department.trim()) {
+    const VALID_DEPARTMENTS = ["Engineering", "HR", "Finance", "Legal", "Operations", "General"];
+    const trimmed = payload.department.trim();
+    if (!VALID_DEPARTMENTS.includes(trimmed)) {
+      throw new ApiError(400, `Invalid department. Must be one of: ${VALID_DEPARTMENTS.join(", ")}`);
+    }
+    updates.department = trimmed;
   }
   if (payload.password) {
     if (payload.password.length < 8) {

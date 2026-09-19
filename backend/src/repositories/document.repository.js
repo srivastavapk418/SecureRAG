@@ -36,11 +36,12 @@ function deleteDocumentById(documentId) {
 }
 
 async function findAccessibleDocumentIds(department) {
+  const deptRegex = new RegExp(`^${(department || "General").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
   const filter = {
     $or: [
       { accessLevel: "public" },
       { accessLevel: { $exists: false } },
-      { accessLevel: "department", allowedDepartments: department || "General" },
+      { accessLevel: "department", allowedDepartments: { $elemMatch: { $regex: deptRegex } } },
     ],
   };
   const docs = await Document.find(filter).select("_id");

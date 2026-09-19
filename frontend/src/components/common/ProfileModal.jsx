@@ -308,13 +308,25 @@ export default function ProfileModal({ isOpen, onClose }) {
 
                   <div className="form-group">
                     <label>Department</label>
-                    <input
-                      type="text"
+                    <select
                       name="department"
                       value={profileForm.department}
                       onChange={handleProfileChange}
-                      placeholder="e.g. Legal, Finance, Eng"
-                    />
+                      disabled={!isAdmin}
+                      className={!isAdmin ? "input-disabled" : ""}
+                    >
+                      <option value="Engineering">Engineering</option>
+                      <option value="HR">HR</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Legal">Legal</option>
+                      <option value="Operations">Operations</option>
+                      <option value="General">General</option>
+                    </select>
+                    {!isAdmin && (
+                      <p style={{ fontSize: "0.76rem", color: "var(--text-muted)", marginTop: "0.35rem" }}>
+                        🔒 Contact your administrator to request a department change.
+                      </p>
+                    )}
                   </div>
 
                   <div className="form-group">
@@ -492,14 +504,19 @@ export default function ProfileModal({ isOpen, onClose }) {
                       </div>
                       <div className="form-group">
                         <label>Department</label>
-                        <input
-                          type="text"
+                        <select
                           value={newUserForm.department}
                           onChange={(e) =>
                             setNewUserForm((prev) => ({ ...prev, department: e.target.value }))
                           }
-                          placeholder="Legal, Finance, Eng"
-                        />
+                        >
+                          <option value="Engineering">Engineering</option>
+                          <option value="HR">HR</option>
+                          <option value="Finance">Finance</option>
+                          <option value="Legal">Legal</option>
+                          <option value="Operations">Operations</option>
+                          <option value="General">General</option>
+                        </select>
                       </div>
                       <div className="form-group">
                         <label>Role</label>

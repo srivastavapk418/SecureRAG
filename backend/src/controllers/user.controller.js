@@ -8,7 +8,7 @@ const getProfile = asyncHandler(async (req, res) => {
 });
 
 const updateProfile = asyncHandler(async (req, res) => {
-  const user = await userService.updateProfile(req.user.id, req.body);
+  const user = await userService.updateProfile(req.user.id, req.body, req.user);
   res.json({ user });
 });
 

@@ -14,7 +14,7 @@ function AdminDashboardPage() {
     title: "",
     description: "",
     accessLevel: "public",
-    allowedDepartments: "",
+    allowedDepartments: [],
     document: null,
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -72,11 +72,11 @@ function AdminDashboardPage() {
       payload.append("title", form.title);
       payload.append("description", form.description);
       payload.append("accessLevel", form.accessLevel);
-      payload.append("allowedDepartments", form.allowedDepartments);
+      payload.append("allowedDepartments", form.allowedDepartments.join(","));
       payload.append("document", form.document);
 
       await uploadDocument(payload);
-      setForm({ title: "", description: "", accessLevel: "public", allowedDepartments: "", document: null });
+      setForm({ title: "", description: "", accessLevel: "public", allowedDepartments: [], document: null });
       await loadAdminWorkspace({ background: true });
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Document upload failed.");
@@ -236,16 +236,35 @@ function AdminDashboardPage() {
               </select>
             </label>
             {form.accessLevel === "department" ? (
-              <label>
-                Allowed Departments (comma-separated)
-                <input
-                  value={form.allowedDepartments}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, allowedDepartments: event.target.value }))
-                  }
-                  placeholder="e.g. Engineering, HR, Finance"
-                />
-              </label>
+              <div className="form-group dept-checkbox-group">
+                <label style={{ marginBottom: "0.5rem", display: "block" }}>
+                  Allowed Departments
+                </label>
+                <div className="dept-checkbox-list">
+                  {["Engineering", "HR", "Finance", "Legal", "Operations", "General"].map((dept) => (
+                    <label key={dept} className="dept-checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={form.allowedDepartments.includes(dept)}
+                        onChange={(e) => {
+                          setForm((current) => ({
+                            ...current,
+                            allowedDepartments: e.target.checked
+                              ? [...current.allowedDepartments, dept]
+                              : current.allowedDepartments.filter((d) => d !== dept),
+                          }));
+                        }}
+                      />
+                      <span>{dept}</span>
+                    </label>
+                  ))}
+                </div>
+                {form.allowedDepartments.length === 0 && (
+                  <p style={{ fontSize: "0.78rem", color: "var(--warning, #f59e0b)", marginTop: "0.4rem" }}>
+                    ⚠ Select at least one department.
+                  </p>
+                )}
+              </div>
             ) : null}
             <label>
               Document file
