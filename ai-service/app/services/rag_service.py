@@ -131,51 +131,79 @@ class RagService:
             allowed_document_ids=payload.allowed_document_ids,
         )
 
-        if not matches:
-            return QueryResponse(
-                answer="I could not find relevant information in the indexed company documents.",
-                citations=[],
+        context_blocks: list[str] = []
+
+        # 1. Build System Catalog context if accessible documents provided
+        if payload.accessible_documents:
+            accessible_count = len(payload.accessible_documents)
+            catalog_lines = [
+                f"- {doc.title}"
+                + (f" (File: {doc.originalName})" if doc.originalName else "")
+                + (f" [Access Policy: {doc.accessLevel}]" if doc.accessLevel else "")
+                for doc in payload.accessible_documents
+            ]
+            catalog_summary = (
+                f"[System Catalog - Accessible Knowledge Assets]\n"
+                f"The current user has clearance to access {accessible_count} indexed document(s) in this enterprise workspace:\n"
+                + "\n".join(catalog_lines)
+            )
+            context_blocks.append(catalog_summary)
+        elif payload.allowed_document_ids is not None and len(payload.allowed_document_ids) == 0:
+            context_blocks.append(
+                "[System Catalog - Accessible Knowledge Assets]\n"
+                "The current user has clearance to access 0 indexed documents in this workspace."
             )
 
-        primary_document_id = str(matches[0]["document_id"])
-        primary_matches = [
-            match for match in matches if str(match["document_id"]) == primary_document_id
-        ] or [matches[0]]
-        context_matches = primary_matches[:3]
+        citations: list[Citation] = []
 
-        context_blocks = [
-            (
-                f"[Source: {match['document_title']} | Section: {match['section']} | "
-                f"Chunk: {match['chunk_index']}]\n{match['text']}"
-            )
-            for match in context_matches
-        ]
+        # 2. Add retrieved document chunks if matches exist
+        if matches:
+            primary_document_id = str(matches[0]["document_id"])
+            primary_matches = [
+                match for match in matches if str(match["document_id"]) == primary_document_id
+            ] or [matches[0]]
+            context_matches = primary_matches[:3]
 
+            for match in context_matches:
+                context_blocks.append(
+                    f"[Source: {match['document_title']} | Section: {match['section']} | "
+                    f"Chunk: {match['chunk_index']}]\n{match['text']}"
+                )
+
+            primary_reference = context_matches[0]
+            # Include citation if relevance score is meaningful
+            if float(primary_reference["score"]) >= 0.35:
+                citations.append(
+                    Citation(
+                        document_id=str(primary_reference["document_id"]),
+                        document_title=str(primary_reference["document_title"]),
+                        source_name=str(primary_reference["source_name"]),
+                        locator=str(primary_reference.get("locator") or primary_reference["section"]),
+                        snippet=str(primary_reference["snippet"]),
+                        chunk_index=int(primary_reference["chunk_index"]),
+                        score=float(primary_reference["score"]),
+                        page_number=int(primary_reference["page_number"])
+                        if primary_reference.get("page_number")
+                        else None,
+                    )
+                )
+
+        # 3. Generate answer via AI client
         try:
             answer = await self.ai_client.generate_answer(
                 payload.question, context_blocks
             )
         except Exception as error:  # noqa: BLE001
-            raise HTTPException(
-                status_code=502,
-                detail=f"Answer generation failed: {error}",
-            ) from error
-
-        primary_reference = context_matches[0]
-        citations = [
-            Citation(
-                document_id=str(primary_reference["document_id"]),
-                document_title=str(primary_reference["document_title"]),
-                source_name=str(primary_reference["source_name"]),
-                locator=str(primary_reference.get("locator") or primary_reference["section"]),
-                snippet=str(primary_reference["snippet"]),
-                chunk_index=int(primary_reference["chunk_index"]),
-                score=float(primary_reference["score"]),
-                page_number=int(primary_reference["page_number"])
-                if primary_reference.get("page_number")
-                else None,
-            )
-        ]
+            if context_blocks:
+                answer = (
+                    "**Enterprise Policy Notice: Direct response synthesized from indexed company assets.**\n\n"
+                    + "\n\n".join(context_blocks)
+                )
+            else:
+                answer = (
+                    "**Enterprise Notice: The knowledge assistant encountered a temporary connectivity issue.**\n\n"
+                    "Please retry your question in a moment."
+                )
 
         return QueryResponse(answer=answer, citations=citations)
 

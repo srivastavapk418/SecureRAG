@@ -5,7 +5,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../hooks/useAuth";
 import ProfileModal from "../common/ProfileModal";
 
-function Topbar({ title, subtitle, actions, onToggleSidebar, isSidebarOpen }) {
+function Topbar({ title, subtitle, actions, onToggleSidebar, isSidebarOpen = true, isMobileOpen = false }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme, isDark } = useTheme();
   const navigate = useNavigate();
@@ -22,25 +22,42 @@ function Topbar({ title, subtitle, actions, onToggleSidebar, isSidebarOpen }) {
         {onToggleSidebar && (
           <button
             type="button"
-            className="mobile-nav-toggle"
+            className="mobile-nav-toggle sidebar-toggle-btn"
             onClick={onToggleSidebar}
-            aria-label={isSidebarOpen ? "Close navigation menu" : "Open navigation menu"}
-            aria-expanded={isSidebarOpen}
+            aria-label={
+              isMobileOpen
+                ? "Close navigation drawer"
+                : isSidebarOpen
+                ? "Collapse sidebar"
+                : "Expand sidebar"
+            }
+            title={
+              isMobileOpen
+                ? "Close navigation drawer"
+                : isSidebarOpen
+                ? "Collapse sidebar"
+                : "Expand sidebar"
+            }
+            aria-expanded={isMobileOpen || isSidebarOpen}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              {isSidebarOpen ? (
-                <>
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </>
-              ) : (
-                <>
-                  <line x1="3" y1="12" x2="21" y2="12"></line>
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <line x1="3" y1="18" x2="21" y2="18"></line>
-                </>
-              )}
-            </svg>
+            {isMobileOpen ? (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            ) : isSidebarOpen ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+                <path d="M9 3v18"></path>
+                <path d="m16 15-3-3 3-3"></path>
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+                <path d="M9 3v18"></path>
+                <path d="m13 9 3 3-3 3"></path>
+              </svg>
+            )}
           </button>
         )}
 

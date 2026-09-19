@@ -63,15 +63,42 @@ async function askQuestion({ user, sessionId, question }) {
     content: question,
   });
 
-  const allowedDocumentIds = await documentService.getAccessibleDocumentIds(user);
+  const accessibleDocuments = await documentService.getAccessibleDocuments(user);
+  const allowedDocumentIds =
+    user.role === ROLES.ADMIN
+      ? null
+      : accessibleDocuments.map((doc) => doc.id || doc._id.toString());
 
-  const aiResponse = await aiService.queryAssistant({
-    question,
-    session_id: session.id,
-    user_id: user.id,
-    top_k: 5,
-    allowed_document_ids: allowedDocumentIds,
-  });
+  const accessibleCatalog = (accessibleDocuments || [])
+    .filter((doc) => doc.ingestStatus === "indexed")
+    .map((doc) => ({
+      id: (doc.id || doc._id).toString(),
+      title: doc.title,
+      originalName: doc.originalName,
+      accessLevel: doc.accessLevel || "public",
+    }));
+
+  let aiResponse;
+  try {
+    aiResponse = await aiService.queryAssistant({
+      question,
+      session_id: session.id,
+      user_id: user.id,
+      top_k: 5,
+      allowed_document_ids: allowedDocumentIds,
+      accessible_documents: accessibleCatalog,
+    });
+  } catch (error) {
+    const catalogCount = accessibleCatalog.length;
+    const docNames = accessibleCatalog.map((d) => `• ${d.title}`).join("\n");
+    aiResponse = {
+      answer:
+        `**Enterprise Notice: The AI service is currently warming up or unavailable.**\n\n` +
+        `You have access to ${catalogCount} indexed knowledge document(s):\n${docNames || "• None"}\n\n` +
+        `Please allow 20–30 seconds for the backend instance to spin up, then submit your query again.`,
+      citations: [],
+    };
+  }
 
   const citations = mapCitations(aiResponse.citations);
 

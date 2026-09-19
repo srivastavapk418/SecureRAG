@@ -154,6 +154,14 @@ async function getAccessibleDocumentIds(user) {
   return documentRepository.findAccessibleDocumentIds(user.department || "General");
 }
 
+async function getAccessibleDocuments(user) {
+  if (!user) return [];
+  if (user.role === ROLES.ADMIN) {
+    return documentRepository.listDocuments();
+  }
+  return documentRepository.findAccessibleDocuments(user.department || "General");
+}
+
 async function reindexDocument(documentId) {
   const document = await verifyDocumentDownload(documentId);
 
@@ -191,6 +199,7 @@ module.exports = {
   verifyDocumentDownload,
   checkDocumentAccess,
   getAccessibleDocumentIds,
+  getAccessibleDocuments,
   reindexDocument,
   deleteDocument,
 };

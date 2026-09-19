@@ -48,6 +48,20 @@ async function findAccessibleDocumentIds(department) {
   return docs.map((doc) => doc._id.toString());
 }
 
+async function findAccessibleDocuments(department) {
+  const deptRegex = new RegExp(`^${(department || "General").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+  const filter = {
+    $or: [
+      { accessLevel: "public" },
+      { accessLevel: { $exists: false } },
+      { accessLevel: "department", allowedDepartments: { $elemMatch: { $regex: deptRegex } } },
+    ],
+  };
+  return Document.find(filter)
+    .select("_id title originalName accessLevel allowedDepartments ingestStatus chunkCount")
+    .sort({ createdAt: -1 });
+}
+
 async function getAccessPolicyDistribution() {
   return Document.aggregate([
     {
@@ -83,6 +97,7 @@ module.exports = {
   countIndexedDocuments,
   deleteDocumentById,
   findAccessibleDocumentIds,
+  findAccessibleDocuments,
   getAccessPolicyDistribution,
   getKnowledgeBaseStats,
 };

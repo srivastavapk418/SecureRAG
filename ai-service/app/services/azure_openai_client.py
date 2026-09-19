@@ -2,6 +2,7 @@ import httpx
 from fastapi import HTTPException
 
 from app.core.config import Settings
+from app.core.prompts import SYSTEM_PROMPT
 
 
 class AzureOpenAIClient:
@@ -64,21 +65,14 @@ class AzureOpenAIClient:
                 detail="Azure OpenAI endpoint and API key must be configured in environment.",
             )
 
-        context_text = "\n\n".join(context_blocks)
-        system_prompt = (
-            "You are SecureRAG, a trusted enterprise AI assistant. Answer the user's question "
-            "strictly based on the provided company document context below. If the answer cannot "
-            "be determined from the context, state that you do not have sufficient information. "
-            "Never invent facts or cite external sources outside the provided context."
-        )
-
+        context_text = "\n\n".join(context_blocks) if context_blocks else "No relevant internal company document context found."
         user_content = f"Context:\n{context_text}\n\nQuestion: {question}"
 
         url = f"{self.endpoint}/openai/deployments/{self.chat_deployment}/chat/completions?api-version={self.api_version}"
 
         payload = {
             "messages": [
-                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_content},
             ],
             "temperature": 0.2,

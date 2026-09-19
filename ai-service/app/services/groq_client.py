@@ -2,6 +2,7 @@ import httpx
 from fastapi import HTTPException
 
 from app.core.config import Settings
+from app.core.prompts import SYSTEM_PROMPT
 from app.services.embedding_service import generate_fallback_embeddings
 from app.services.ollama_client import OllamaClient
 
@@ -15,8 +16,13 @@ class GroqClient:
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        self.api_key = settings.groq_api_key
-        self.model = settings.groq_chat_model or "llama-3.1-8b-instant"
+        self.api_key = (settings.groq_api_key or "").strip()
+        raw_model = (settings.groq_chat_model or "llama-3.3-70b-versatile").strip()
+        if raw_model.startswith("groq/"):
+            raw_model = raw_model[len("groq/") :]
+        if "compound" in raw_model.lower() or not raw_model:
+            raw_model = "llama-3.3-70b-versatile"
+        self.model = raw_model
         self.base_url = "https://api.groq.com/openai/v1"
         self.ollama_client = OllamaClient(settings)
 
@@ -59,19 +65,12 @@ class GroqClient:
 
     async def generate_answer(self, question: str, context_blocks: list[str]) -> str:
         if not self.api_key:
-            raise HTTPException(
-                status_code=500,
-                detail="GROQ_API_KEY is required for the Groq free-tier provider. Obtain one for free at console.groq.com.",
+            return (
+                "**Enterprise Notice: The AI service configuration requires an active Groq API Key.**\n\n"
+                "Please configure `GROQ_API_KEY` in the workspace environment settings to enable real-time inference."
             )
 
-        context_text = "\n\n".join(context_blocks)
-        system_prompt = (
-            "You are SecureRAG, an enterprise AI knowledge assistant. Answer the user's question "
-            "strictly using the provided company document context below. If the answer cannot "
-            "be determined from the context, state that you do not have sufficient information in the indexed documents. "
-            "Never invent facts or cite external sources outside the provided context."
-        )
-
+        context_text = "\n\n".join(context_blocks) if context_blocks else "No relevant internal company document context found."
         user_content = f"Context:\n{context_text}\n\nQuestion: {question}"
 
         headers = {
@@ -79,33 +78,44 @@ class GroqClient:
             "Content-Type": "application/json",
         }
 
-        payload = {
-            "model": self.model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content},
-            ],
-            "temperature": 0.2,
-            "max_tokens": 1024,
-        }
+        # Candidate models to try in order of capability & availability
+        candidates = [self.model]
+        for fallback in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"]:
+            if fallback not in candidates:
+                candidates.append(fallback)
 
-        try:
-            async with httpx.AsyncClient(timeout=self.settings.ollama_timeout_seconds) as client:
-                response = await client.post(
-                    f"{self.base_url}/chat/completions",
-                    headers=headers,
-                    json=payload,
-                )
-                response.raise_for_status()
-                data = response.json()
-                return data["choices"][0]["message"]["content"].strip()
-        except httpx.HTTPStatusError as error:
-            raise HTTPException(
-                status_code=502,
-                detail=f"Groq API request failed: {error.response.text}",
-            ) from error
-        except Exception as error:
-            raise HTTPException(
-                status_code=502,
-                detail=f"Failed to connect to Groq AI service: {error}",
-            ) from error
+        for candidate_model in candidates:
+            payload = {
+                "model": candidate_model,
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_content},
+                ],
+                "temperature": 0.2,
+                "max_tokens": 1024,
+            }
+
+            try:
+                async with httpx.AsyncClient(timeout=min(self.settings.ollama_timeout_seconds, 60)) as client:
+                    response = await client.post(
+                        f"{self.base_url}/chat/completions",
+                        headers=headers,
+                        json=payload,
+                    )
+                    if response.status_code == 200:
+                        data = response.json()
+                        return data["choices"][0]["message"]["content"].strip()
+            except Exception:
+                continue
+
+        # Fallback response if all inference model attempts fail
+        if context_blocks:
+            return (
+                "**Enterprise Policy Notice: Direct response synthesized from indexed company assets (inference service fallback).**\n\n"
+                f"{context_text}"
+            )
+
+        return (
+            "**Enterprise Notice: The inference provider is temporarily unavailable or experiencing high load.**\n\n"
+            "Please retry your question in a moment, or contact your enterprise workspace administrator."
+        )

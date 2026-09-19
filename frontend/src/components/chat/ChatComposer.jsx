@@ -42,7 +42,8 @@ function ChatComposer({ onSubmit, isSubmitting }) {
           onChange={(event) => setQuestion(event.target.value)}
           onKeyDown={handleKeyDown}
           rows={1}
-          placeholder="Ask a question about policies, documents, procedures, or collections..."
+          placeholder="Ask a question or type to start a new conversation..."
+          autoFocus
           disabled={isSubmitting}
         />
 

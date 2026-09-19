@@ -60,15 +60,6 @@ function ChatMessageList({ messages = [], isSubmitting = false, onSelectPrompt }
             <button
               type="button"
               className="starter-prompt-card"
-              onClick={() => onSelectPrompt("Summarize key concepts from Java Collection document.")}
-            >
-              <span>☕</span>
-              <strong>Java Collections</strong>
-              <small>Search synchronization, list vs set, and data structures</small>
-            </button>
-            <button
-              type="button"
-              className="starter-prompt-card"
               onClick={() => onSelectPrompt("What are the departmental access rules for company documents?")}
             >
               <span>🔒</span>

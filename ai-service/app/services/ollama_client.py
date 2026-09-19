@@ -1,6 +1,7 @@
 import httpx
 
 from app.core.config import Settings
+from app.core.prompts import SYSTEM_PROMPT
 
 EMBED_BATCH_SIZE = 6
 
@@ -55,20 +56,12 @@ class OllamaClient:
                 )
 
     async def generate_answer(self, question: str, context_blocks: list[str]) -> str:
-        context = "\n\n".join(context_blocks)
-
-        system_prompt = (
-            "You are a private enterprise knowledge assistant. "
-            "Answer only from the provided document context. "
-            "If the answer is not present, say that the information was not found in the indexed documents. "
-            "Be concise, accurate, and policy-focused. "
-            "Do not invent company rules."
-        )
+        context = "\n\n".join(context_blocks) if context_blocks else "No relevant internal company document context found."
 
         user_prompt = (
+            f"Context:\n{context}\n\n"
             f"Question:\n{question}\n\n"
-            f"Retrieved context:\n{context}\n\n"
-            "Respond with a helpful answer grounded in the context."
+            "Respond with a helpful, accurate, and professional answer following the enterprise guidelines."
         )
 
         async with httpx.AsyncClient(
@@ -93,7 +86,7 @@ class OllamaClient:
                             "model": model_name,
                             "stream": False,
                             "messages": [
-                                {"role": "system", "content": system_prompt},
+                                {"role": "system", "content": SYSTEM_PROMPT},
                                 {"role": "user", "content": user_prompt},
                             ],
                             "options": {"temperature": 0.2},
