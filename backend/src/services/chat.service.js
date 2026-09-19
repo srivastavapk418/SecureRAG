@@ -78,11 +78,23 @@ async function askQuestion({ user, sessionId, question }) {
       accessLevel: doc.accessLevel || "public",
     }));
 
-  // Extract keywords from user question for fail-safe chunk retrieval
-  const stopWords = new Set(["what", "when", "where", "which", "with", "from", "that", "this", "have", "does", "about", "some", "the", "and", "for", "our", "are", "can", "you", "tell"]);
-  const keywords = (question.toLowerCase().match(/[a-z0-9]{3,}/g) || []).filter(
-    (w) => !stopWords.has(w)
+  // Extract keywords from user question with domain term weighting
+  const standardStopWords = new Set([
+    "what", "when", "where", "which", "with", "from", "that", "this", "have", "does",
+    "about", "some", "the", "and", "for", "our", "are", "can", "you", "tell", "how",
+    "who", "why", "was", "were", "will", "would", "should", "could", "all", "any",
+  ]);
+
+  const domainStopWords = new Set([
+    "company", "policy", "policies", "rule", "rules", "guideline", "guidelines",
+    "document", "documents", "procedure", "procedures", "system", "systems", "general",
+  ]);
+
+  const allWords = (question.toLowerCase().match(/[a-z0-9]{3,}/g) || []).filter(
+    (w) => !standardStopWords.has(w)
   );
+  const primaryKeywords = allWords.filter((w) => !domainStopWords.has(w));
+  const secondaryKeywords = allWords.filter((w) => domainStopWords.has(w));
 
   const candidateChunks = [];
   for (const doc of accessibleDocuments || []) {
@@ -91,11 +103,18 @@ async function askQuestion({ user, sessionId, question }) {
         const textLower = (chunk.text || "").toLowerCase();
         const sectionLower = (chunk.section || "").toLowerCase();
         let matchScore = 0;
-        for (const kw of keywords) {
-          if (textLower.includes(kw)) matchScore += 2;
-          if (sectionLower.includes(kw)) matchScore += 3;
+
+        for (const kw of primaryKeywords) {
+          const count = textLower.split(kw).length - 1;
+          matchScore += count * 15;
+          if (sectionLower.includes(kw)) matchScore += 20;
         }
-        if (matchScore > 0 || doc.chunks.length <= 3) {
+
+        for (const kw of secondaryKeywords) {
+          if (textLower.includes(kw)) matchScore += 1;
+        }
+
+        if (matchScore > 0 || (primaryKeywords.length === 0 && doc.chunks.length <= 2)) {
           candidateChunks.push({
             document_id: (doc.id || doc._id).toString(),
             document_title: doc.title,

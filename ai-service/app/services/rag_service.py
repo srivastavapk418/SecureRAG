@@ -176,33 +176,38 @@ class RagService:
 
         # 3. Merge persistent context chunks from MongoDB if provided
         if payload.context_chunks:
-            existing_ids = {
-                f"{c['document_id']}:{c['chunk_index']}" for c in all_candidate_chunks
+            existing_map = {
+                f"{c['document_id']}:{c['chunk_index']}": c
+                for c in all_candidate_chunks
             }
-            for p_chunk in payload.context_chunks:
+            for i, p_chunk in enumerate(payload.context_chunks):
                 cid = f"{p_chunk.document_id}:{p_chunk.chunk_index}"
-                if cid not in existing_ids:
-                    all_candidate_chunks.append(
-                        {
-                            "document_id": p_chunk.document_id,
-                            "document_title": p_chunk.document_title,
-                            "source_name": p_chunk.source_name,
-                            "section": p_chunk.section,
-                            "locator": p_chunk.locator or p_chunk.section,
-                            "page_number": p_chunk.page_number,
-                            "text": p_chunk.text,
-                            "snippet": p_chunk.snippet or p_chunk.text[:240],
-                            "chunk_index": p_chunk.chunk_index,
-                            "score": 0.85,
-                        }
+                boost_score = round(0.95 - (i * 0.02), 2)
+                if cid in existing_map:
+                    existing_map[cid]["score"] = max(
+                        float(existing_map[cid].get("score", 0.0)), boost_score
                     )
-                    existing_ids.add(cid)
+                else:
+                    new_chunk = {
+                        "document_id": p_chunk.document_id,
+                        "document_title": p_chunk.document_title,
+                        "source_name": p_chunk.source_name,
+                        "section": p_chunk.section,
+                        "locator": p_chunk.locator or p_chunk.section,
+                        "page_number": p_chunk.page_number,
+                        "text": p_chunk.text,
+                        "snippet": p_chunk.snippet or p_chunk.text[:240],
+                        "chunk_index": p_chunk.chunk_index,
+                        "score": boost_score,
+                    }
+                    all_candidate_chunks.append(new_chunk)
+                    existing_map[cid] = new_chunk
 
         # 4. Rank candidate chunks and assemble rich multi-document context blocks
         all_candidate_chunks.sort(
             key=lambda x: float(x.get("score", 0.0)), reverse=True
         )
-        selected_chunks = all_candidate_chunks[: min(len(all_candidate_chunks), 6)]
+        selected_chunks = all_candidate_chunks[: min(len(all_candidate_chunks), 8)]
 
         for chunk in selected_chunks:
             page_info = (

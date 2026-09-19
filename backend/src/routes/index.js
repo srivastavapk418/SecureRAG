@@ -11,6 +11,7 @@ const router = express.Router();
 router.get("/health", (_req, res) => {
   res.json({
     status: "ok",
+    version: "v1.3-multidoc-grounded",
   });
 });
 
