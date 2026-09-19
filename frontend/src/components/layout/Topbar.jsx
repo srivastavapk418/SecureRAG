@@ -5,7 +5,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useAuth } from "../../hooks/useAuth";
 import ProfileModal from "../common/ProfileModal";
 
-function Topbar({ title, subtitle, actions }) {
+function Topbar({ title, subtitle, actions, onToggleSidebar, isSidebarOpen }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme, isDark } = useTheme();
   const navigate = useNavigate();
@@ -18,13 +18,40 @@ function Topbar({ title, subtitle, actions }) {
 
   return (
     <header className="topbar">
-      <div className="topbar-title-section">
-        <div className="topbar-status-badge">
-          <span className="live-status-dot" />
-          <span>Enterprise RAG Active</span>
+      <div className="topbar-left">
+        {onToggleSidebar && (
+          <button
+            type="button"
+            className="mobile-nav-toggle"
+            onClick={onToggleSidebar}
+            aria-label={isSidebarOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={isSidebarOpen}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              {isSidebarOpen ? (
+                <>
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </>
+              ) : (
+                <>
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </>
+              )}
+            </svg>
+          </button>
+        )}
+
+        <div className="topbar-title-section">
+          <div className="topbar-status-badge">
+            <span className="live-status-dot" />
+            <span>Enterprise RAG Active</span>
+          </div>
+          <h1>{title}</h1>
+          <p className="topbar-subtitle">{subtitle}</p>
         </div>
-        <h1>{title}</h1>
-        <p className="topbar-subtitle">{subtitle}</p>
       </div>
 
       <div className="topbar-actions">
